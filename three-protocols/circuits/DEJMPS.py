@@ -47,12 +47,14 @@ def distill_group(circuit, groups, p_local, shift = 0):
     return checks
 
 
-def epr_distillation(n, p_local=0.001, p_trans=0.001, fidelity_basis = "ZX"):
+def epr_distillation(n, p_local=0.001, p_trans=0.001, fidelity_basis = "ZX", noisy_readout=True):
     """
     Implement EPR distillation protocol for 2^n pairs.
     Args:
         n: Exponent for number of EPR pairs (2^n).
         p_local: Probability of depolarization noise.
+        noisy_readout: if False, the ancillas that read out the final ZZ and XX parities are noiseless
+            (as the final data readout of the surface code and Steane code circuits).
     Returns:
         stim.Circuit: The complete distillation circuit.
     """
@@ -114,7 +116,8 @@ def epr_distillation(n, p_local=0.001, p_trans=0.001, fidelity_basis = "ZX"):
 
         
         circuit.append("R", [zz_ancilla, xx_ancilla])
-        circuit.append("X_ERROR", [zz_ancilla, xx_ancilla], p_local)
+        if noisy_readout:
+            circuit.append("X_ERROR", [zz_ancilla, xx_ancilla], p_local)
         circuit.append("H", xx_ancilla)
         circuit.append("CX", [final_q1, zz_ancilla])
         circuit.append("TICK")

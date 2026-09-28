@@ -2,7 +2,7 @@ import numpy as np
 import torch
 from typing import Optional, Tuple
 import math
-from Model.model import NN, RiskCNN, RiskCNNUniversal, RiskCNNUniversalV2
+from Model.model import NN
 import torch.nn as nn
 from surface import State_Encoding
 from tqdm import tqdm

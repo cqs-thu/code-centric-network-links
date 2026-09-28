@@ -16,7 +16,7 @@ from cals.cal_logical_error import *
 
 results_dir = os.path.join(os.path.dirname(__file__), 'results')
 os.makedirs(results_dir, exist_ok=True)
-cache_file = os.path.join(results_dir, 'data_all.csv')
+cache_file = os.path.join(results_dir, 'data_all_two_basis.csv')
 
 try:
     df_cache = pd.read_csv(cache_file)
@@ -35,6 +35,8 @@ code_types = ["Surface Code", "Steane Code"]
 protocols = ['distillation', 'encoding', 'qecc']
 
 protocol_map_surface = {"distillation": "distillation", "encoding": "encoding", "qecc": "QECC"}
+# num_layer such that every surface code protocol has one syndrome-measurement round after transmission
+surface_num_layer = {"distillation": 0, "encoding": 1, "qecc": 1}
 protocol_map_steane = {"distillation": 1, "encoding": 2, "qecc": 3}
 
 new_results = []
@@ -54,12 +56,13 @@ for code in code_types:
                 if exists:
                     continue
 
+                # logical error rate = average of the Z-basis and X-basis failure probabilities
                 if code == "Surface Code":
                     proto_arg = protocol_map_surface[protocol]
-                    logical_error = cal_surface_correction(d = 3, num_layer = 1, p_local=p_local, p_trans=p_trans, protocol_type=proto_arg)
+                    logical_error = sum(cal_surface_correction(d = 3, num_layer = surface_num_layer[protocol], p_local=p_local, p_trans=p_trans, shots = 40_000_000, protocol_type=proto_arg, basis=b) for b in "ZX") / 2
                 elif code == "Steane Code":
                     proto_arg = protocol_map_steane[protocol]
-                    logical_error = cal_steane_correction(p_local=p_local, p_trans=p_trans, shots = 1000000, protocol_type=proto_arg)
+                    logical_error = sum(cal_steane_correction(p_local=p_local, p_trans=p_trans, shots = 1000000, protocol_type=proto_arg, basis=b) for b in "ZX") / 2
                 
                 new_results.append({
                     'code_type': code, 'p_local': p_local, 'p_transmit': p_trans,
@@ -100,6 +103,8 @@ protocol_palettes = {
 if __name__ == '__main__':
     plt.rcParams.update({
         "font.size": 25,
+        "pdf.fonttype": 42,
+        "ps.fonttype": 42,
         "legend.fontsize": 20,
         "axes.labelsize": 26,
         "xtick.labelsize": 25,
@@ -115,6 +120,8 @@ if __name__ == '__main__':
         xtick_labels = [f"{pt:.3f}" for pt in p_transmit_values]
 
         bar_width = 0.25
+        if code == "Surface Code":
+            ax.set_ylim(0, 0.15017975)   # y-range of the paper figure
 
         for i, protocol in enumerate(protocols):
             for j, p_local in enumerate(p_local_values[::-1]):
@@ -152,7 +159,7 @@ if __name__ == '__main__':
 
         protocol_legend = [
             Patch(facecolor=sns.color_palette("Greens")[len(p_local_values)//2], edgecolor='black', label='ED'),
-            Patch(facecolor=sns.color_palette("Reds")[len(p_local_values)//2], edgecolor='black', label='LEE'),
+            Patch(facecolor=sns.color_palette("Reds")[len(p_local_values)//2], edgecolor='black', label='EE-T'),
             Patch(facecolor=sns.color_palette("Blues")[len(p_local_values)//2], edgecolor='black', label='SE'),
         ]
 

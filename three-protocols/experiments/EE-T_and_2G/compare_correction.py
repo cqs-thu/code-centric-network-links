@@ -43,7 +43,7 @@ def add_result_to_cache(p_local, p_trans, encoding_logical_error, protocol_2g_lo
 def prepare_data(p_local_list, p_transmission_list, code_type = "surface"):
     results_dir = os.path.join(os.path.dirname(__file__), 'results')
     os.makedirs(results_dir, exist_ok=True)
-    cache_file = os.path.join(results_dir, f'{code_type}_comparison_cache.csv')
+    cache_file = os.path.join(results_dir, f'{code_type}_comparison_two_basis_cache.csv')
 
     all_results = []
     for p_local in p_local_list:
@@ -56,12 +56,13 @@ def prepare_data(p_local_list, p_transmission_list, code_type = "surface"):
                 encoding_error, protocol_2g_error = cached_res
             else:
                 print(f"Calculating for: pl={p_local}, pt={p_trans}")
+                # logical error rate = average of the Z-basis and X-basis failure probabilities
                 if code_type == "surface":
-                    encoding_error = cal_surface_correction(d=3, num_layer=3, p_local=p_local, p_trans=p_trans, shots = 1000000,protocol_type="encoding")
-                    protocol_2g_error = cal_2g_surface_correction(d=3, p_local=p_local, p_trans=p_trans, n=5000000)
+                    encoding_error = sum(cal_surface_correction(d=3, num_layer=1, p_local=p_local, p_trans=p_trans, shots = 40_000_000, protocol_type="encoding", basis=b) for b in "ZX") / 2
+                    protocol_2g_error = sum(cal_2g_surface_correction(d=3, p_local=p_local, p_trans=p_trans, n=40_000_000, basis=b) for b in "ZX") / 2
                 elif code_type == "steane":
-                    encoding_error = cal_steane_correction(p_local=p_local, p_trans=p_trans, shots = 1000000, protocol_type=2)
-                    protocol_2g_error = cal_2g_steane_correction (p_local=p_local, p_trans=p_trans, shots = 1000000)
+                    encoding_error = sum(cal_steane_correction(p_local=p_local, p_trans=p_trans, shots = 1000000, protocol_type=2, basis=b) for b in "ZX") / 2
+                    protocol_2g_error = sum(cal_2g_steane_correction(p_local=p_local, p_trans=p_trans, shots = 1000000, basis=b) for b in "ZX") / 2
                 add_result_to_cache(p_local, p_trans, encoding_error, protocol_2g_error, cache_file)
             
             all_results.append({'p_local': p_local, 'p_transmission': p_trans, 'protocol': 'Encoding', 'logical_error': encoding_error})
@@ -102,13 +103,15 @@ def create_comparison_bar_chart(df, y_col, y_label, title, output_filename):
     ax.set_xlabel("Transmission Error Rate", fontweight='bold')
     ax.set_ylabel(y_label, fontweight='bold')
     # ax.set_yscale('log')
+    if 'surface' in os.path.basename(output_filename):
+        ax.set_ylim(0, 0.16009476)   # y-range of the paper figure
     ax.set_xticks(x)
     ax.set_xticklabels(xtick_labels)
 
 
     protocol_legend_handles = [
-        Patch(facecolor=protocol_palettes['Encoding'][len(p_local_values)//2], edgecolor='black', label='LEE'),
-        Patch(facecolor=protocol_palettes['Protocol_2G'][len(p_local_values)//2], edgecolor='black', label='2nd Gen Protocol'),
+        Patch(facecolor=protocol_palettes['Encoding'][len(p_local_values)//2], edgecolor='black', label='EE-T'),
+        Patch(facecolor=protocol_palettes['Protocol_2G'][len(p_local_values)//2], edgecolor='black', label='EE-NC'),
     ]
     
     gray_palette = sns.color_palette("Greys_r", n_colors=len(p_local_values))
@@ -138,6 +141,8 @@ def create_comparison_bar_chart(df, y_col, y_label, title, output_filename):
 if __name__ == '__main__':
     plt.rcParams.update({
         "font.size": 25,
+        "pdf.fonttype": 42,
+        "ps.fonttype": 42,
         "legend.fontsize": 22,
         "axes.labelsize": 28,
         "xtick.labelsize": 25,

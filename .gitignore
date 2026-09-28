@@ -1,0 +1,26 @@
+__pycache__/
+*.pyc
+# result caches and figures written by the experiment scripts
+three-protocols/experiments/*/results/
+three-protocols/experiments/*/*.pdf
+hybrid-error-management/smoke_test/
+hybrid-error-management/cache_decoder_comparison/
+hybrid-error-management/figs_decoder_comparison/
+hybrid-error-management/cache_distill_compare/
+hybrid-error-management/figs_distill_compare/
+hybrid-error-management/cache_nearterm/
+hybrid-error-management/figs_nearterm/
+hybrid-error-management/fig_out/
+hybrid-error-management/figs_threshold/
+hybrid-error-management/figs_runtime/
+# outputs written by the long-running drivers
+hybrid-error-management/finite_size_scan/results/
+hybrid-error-management/finite_size_scan/test_results/
+hybrid-error-management/finite_size_scan/logs/
+hybrid-error-management/finite_size_scan/test_logs/
+hybrid-error-management/finite_size_scan/out/
+hybrid-error-management/finite_size_scan/test_out/
+hybrid-error-management/runtime_benchmark/results/
+hybrid-error-management/runtime_benchmark/logs/
+hybrid-error-management/runtime_benchmark/figs/
+hybrid-error-management/runtime_benchmark/*.csv

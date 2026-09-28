@@ -573,7 +573,7 @@ def plot_surface_and_lines_one_panel(
       - DS surface (green, without edges)
       - All SW/DS lines (accept shaded)
       - Pure baseline at a=1 (grey dashed)
-      - Break-even plane: p_L = p_trans  (very light gray)
+      - Break-even plane: p_L = 2 p_trans / 3  (very light gray)
     """
 
     accepts_sorted = sorted(accepts)
@@ -596,13 +596,13 @@ def plot_surface_and_lines_one_panel(
     Y_levels = np.array(accepts_sorted, dtype=float)
     X, Y = np.meshgrid(x_grid, Y_levels)
 
-    # ---- Break-even plane: p_L = p_trans ----
-    # In zlog mode, z = log10(p_trans); otherwise z = p_trans.
+    # ---- Break-even plane: p_L = 2 p_trans / 3 (an unencoded |0> read out in Z) ----
+    # In zlog mode, z = log10(2 p_trans / 3); otherwise z = 2 p_trans / 3.
     if break_even_plane:
         # Use a y-grid that also spans up to 1.0, so the plane covers the pure baseline line as well.
         y_plane_levels = np.array(sorted(list(set(accepts_sorted + [1.0]))), dtype=float)
         Xp, Yp = np.meshgrid(x_grid, y_plane_levels)
-        Zp = safe_log10(Xp) if zlog else Xp
+        Zp = safe_log10(2 * Xp / 3) if zlog else 2 * Xp / 3
 
         ax.plot_surface(
             Xp, Yp, Zp,
@@ -692,7 +692,7 @@ def plot_surface_and_lines_one_panel(
         Line2D([0],[0], color=greens(0.7), linestyle="-", marker="^", linewidth=2.2, label="DS (green surface/lines)"),
     ]
     if break_even_plane:
-        method_handles.append(Line2D([0],[0], color="#bdbdbd", linewidth=4, label="Break-even plane ($p_L=p_{trans}$)"))
+        method_handles.append(Line2D([0],[0], color="#bdbdbd", linewidth=4, label="Break-even plane ($p_L=2p_{trans}/3$)"))
 
     leg1 = ax.legend(handles=method_handles, title="Objects", loc="upper left",
                      fontsize=9, frameon=True, title_fontsize=9)

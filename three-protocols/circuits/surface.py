@@ -4,7 +4,7 @@ import pymatching
 from tqdm import tqdm
 import time
 
-def EPR_QECC_Protocal_Circuit(d, num_layer, p_local=0.001, p_trans=0.001):
+def EPR_QECC_Protocal_Circuit(d, num_layer, p_local=0.001, p_trans=0.001, basis="Z"):
     """Fault Tolerant EPR State Preparation and Distribution Circuit of Rotated Surface Code [QECC]
     
     (1) Initialization: Alice: |+⟩, Bob: |+⟩.
@@ -28,6 +28,8 @@ def EPR_QECC_Protocal_Circuit(d, num_layer, p_local=0.001, p_trans=0.001):
         num_layer (int): Measurement rounds
         p_local (float, optional): Physical error rate of local operations. Defaults to 0.001.
         p_trans (float, optional): Physical error rate of transmission. Defaults to 0.001.
+        basis (str, optional): "Z" (default) reads the Z_L Z_L parity of the Bell pair with a noiseless M readout;
+            "X" reads the X_L X_L parity with a noiseless MX readout. Everything before the final readout is identical.
 
     Returns:
         Stim.Circuit(): An object of Stim.Circuit()
@@ -45,6 +47,10 @@ def EPR_QECC_Protocal_Circuit(d, num_layer, p_local=0.001, p_trans=0.001):
 
     Alice_Z_Logical_Operator = []
     Bob_Z_Logical_Operator = []
+    # [basis] X_L of each patch: row 0 (x = 1)
+    Alice_X_Logical_Operator = []
+    Bob_X_Logical_Operator = []
+    assert basis in ("Z", "X")
 
     stabilizer_x_list = []
     stabilizer_z_list = []
@@ -68,6 +74,8 @@ def EPR_QECC_Protocal_Circuit(d, num_layer, p_local=0.001, p_trans=0.001):
             Alice_data_qubits.append(index)
             if col == d - 1:
                 Alice_Z_Logical_Operator.append(index)
+            if row == 0:
+                Alice_X_Logical_Operator.append(index)
             qubit_index_position[index] = (X, Y)
 
     # all the indices of Bob's qubits should be Alice_Qubit[i] + Bob_Shift
@@ -85,6 +93,8 @@ def EPR_QECC_Protocal_Circuit(d, num_layer, p_local=0.001, p_trans=0.001):
             Bob_data_qubits.append(index)
             if col == 0:
                 Bob_Z_Logical_Operator.append(index)
+            if row == 0:
+                Bob_X_Logical_Operator.append(index)
             qubit_index_position[index] = (X, Y)
 
     # append boundary z stabilizer ancilla qubit (Alice)
@@ -681,13 +691,16 @@ def EPR_QECC_Protocal_Circuit(d, num_layer, p_local=0.001, p_trans=0.001):
     # (5) Final measurement
     # Measure all data qubits at Z basis
     # circuit.append('X_ERROR', data_qubits_list, p_local)
-    circuit.append('M', data_qubits_list)
+    # [basis] noiseless readout of all data qubits in the Z (M) or X (MX) basis
+    circuit.append('M' if basis == "Z" else 'MX', data_qubits_list)
     final_detector_list += data_qubits_list
     final_detector_shift_list = [(-len(final_detector_list) + i) for i in range(len(final_detector_list))]
 
     final_detector_set = set(final_detector_list)
     final_data_qubits_set = set(data_qubits_list)
-    final_stabilizer_z_set = set(stabilizer_z_list)
+    # [basis] readout detectors from the Z-type checks (M) or the X-type checks (MX); the support offsets
+    # (-1, +1, -2d-2, -2d) are the CX partners of both ancilla types in syndrome_extraction_initialization
+    final_stabilizer_z_set = set(stabilizer_z_list) if basis == "Z" else set(stabilizer_x_list)
     # perform "perfect" measurement of z stabilizers on Alice's and Bob's patch
     for i, detector in enumerate(final_detector_list):
         if detector in final_stabilizer_z_set:
@@ -711,24 +724,29 @@ def EPR_QECC_Protocal_Circuit(d, num_layer, p_local=0.001, p_trans=0.001):
 
     # (6) Check fidelity, logical observables
     # obserable = $M_{Z_{L1}Z_{L2}} ^ Z^{\prime}_{L1} ^ Z^{\prime}_{L2}$
+    # [basis] X: observable = X_L(A) X_L(B). X_L(A) X_L(B) commutes with the merged checks and is +1 on |+>_L|+>_L,
+    # so no lattice-surgery outcome enters it.
     target_rec = []
-    # append M_{Z_{L1}Z_{L2}} result
-    for i in range(len(temp_stabilizer_list)):
-        if final_detector_list[i] in mid_stabilizer_z_list:
-            target_rec.append(stim.target_rec(final_detector_shift_list[i]))
+    if basis == "Z":
+        # append M_{Z_{L1}Z_{L2}} result
+        for i in range(len(temp_stabilizer_list)):
+            if final_detector_list[i] in mid_stabilizer_z_list:
+                target_rec.append(stim.target_rec(final_detector_shift_list[i]))
+    Alice_Logical_Operator = Alice_Z_Logical_Operator if basis == "Z" else Alice_X_Logical_Operator
+    Bob_Logical_Operator = Bob_Z_Logical_Operator if basis == "Z" else Bob_X_Logical_Operator
     # append Alice's Z logical operators
     for i in range(len(final_detector_list) - len(data_qubits_list), len(final_detector_list)):
-        if final_detector_list[i] in Alice_Z_Logical_Operator:
+        if final_detector_list[i] in Alice_Logical_Operator:
             target_rec.append(stim.target_rec(final_detector_shift_list[i]))
     # append Bob's Z logical operators
     for i in range(len(final_detector_list) - len(data_qubits_list), len(final_detector_list)):
-        if final_detector_list[i] in Bob_Z_Logical_Operator:
+        if final_detector_list[i] in Bob_Logical_Operator:
             target_rec.append(stim.target_rec(final_detector_shift_list[i]))
 
     circuit.append(stim.CircuitInstruction('OBSERVABLE_INCLUDE', target_rec, [0]))
     return circuit
 
-def EPR_LOCC_Protocal_Circuit(d, num_layer, p_local=0.001, p_trans=0.001):
+def EPR_LOCC_Protocal_Circuit(d, num_layer, p_local=0.001, p_trans=0.001, basis="Z"):
     """Fault Tolerant EPR State Preparation and Distribution Circuit of Rotated Surface Code [LOCC]
 
     (1) Initialization: Alice-Bob: √2/2 * (|00⟩ + |11⟩)^{⊗n}.
@@ -747,6 +765,8 @@ def EPR_LOCC_Protocal_Circuit(d, num_layer, p_local=0.001, p_trans=0.001):
         num_layer (int): Measurement rounds during the memory process in repeat block
         p_local (float, optional): Physical error rate of local operations. Defaults to 0.001.
         p_trans (float, optional): Physical error rate of transmission. Defaults to 0.001.
+        basis (str, optional): "Z" (default) reads the Z_L Z_L parity of the Bell pair with a noiseless M readout;
+            "X" reads the X_L X_L parity with a noiseless MX readout. Everything before the final readout is identical.
 
     Returns:
         Stim.Circuit(): An object of Stim.Circuit()
@@ -764,6 +784,10 @@ def EPR_LOCC_Protocal_Circuit(d, num_layer, p_local=0.001, p_trans=0.001):
 
     Alice_Z_Logical_Operator = []
     Bob_Z_Logical_Operator = []
+    # [basis] X_L of each patch: row 0 (x = 1)
+    Alice_X_Logical_Operator = []
+    Bob_X_Logical_Operator = []
+    assert basis in ("Z", "X")
 
     stabilizer_x_list = []
     stabilizer_z_list = []
@@ -787,6 +811,8 @@ def EPR_LOCC_Protocal_Circuit(d, num_layer, p_local=0.001, p_trans=0.001):
             Alice_data_qubits.append(index)
             if col == 0:
                 Alice_Z_Logical_Operator.append(index)
+            if row == 0:
+                Alice_X_Logical_Operator.append(index)
             qubit_index_position[index] = (X, Y)
 
     # all the indices of Bob's qubits should be Alice_Qubit[i] + Bob_Shift
@@ -804,6 +830,8 @@ def EPR_LOCC_Protocal_Circuit(d, num_layer, p_local=0.001, p_trans=0.001):
             Bob_data_qubits.append(index)
             if col == 0:
                 Bob_Z_Logical_Operator.append(index)
+            if row == 0:
+                Bob_X_Logical_Operator.append(index)
             qubit_index_position[index] = (X, Y)
 
     # append boundary z stabilizer ancilla qubit (Alice)
@@ -1174,7 +1202,8 @@ def EPR_LOCC_Protocal_Circuit(d, num_layer, p_local=0.001, p_trans=0.001):
 
     # (4) Final measurement
     # circuit.append('X_ERROR', data_qubits_list, p_local)
-    circuit.append('M', data_qubits_list)
+    # [basis] noiseless readout of all data qubits in the Z (M) or X (MX) basis
+    circuit.append('M' if basis == "Z" else 'MX', data_qubits_list)
 
     final_detector_list = []
     final_detector_list += stabilizer_list
@@ -1183,7 +1212,9 @@ def EPR_LOCC_Protocal_Circuit(d, num_layer, p_local=0.001, p_trans=0.001):
 
     final_detector_set = set(final_detector_list)
     final_data_qubits_set = set(data_qubits_list)
-    final_stabilizer_z_set = set(stabilizer_z_list)
+    # [basis] readout detectors from the Z-type checks (M) or the X-type checks (MX); the support offsets
+    # (-1, +1, -2d-2, -2d) are the CX partners of both ancilla types in syndrome_extraction_initialization
+    final_stabilizer_z_set = set(stabilizer_z_list) if basis == "Z" else set(stabilizer_x_list)
 
     # perform "perfect" measurement of z stabilizers on Alice's and Bob's patch
     for i, detector in enumerate(final_detector_list):
@@ -1208,19 +1239,28 @@ def EPR_LOCC_Protocal_Circuit(d, num_layer, p_local=0.001, p_trans=0.001):
 
     # (5) Check fidelity, logical observables
 
+    # [basis] observable: Z_L(A) Z_L(B) (column 0 of each patch) or X_L(A) X_L(B) (row 0 of each patch)
+    Alice_Logical_Operator = Alice_Z_Logical_Operator if basis == "Z" else Alice_X_Logical_Operator
+    Bob_Logical_Operator = Bob_Z_Logical_Operator if basis == "Z" else Bob_X_Logical_Operator
     target_rec = []
     # append Alice's Z logical operators
     for i in range(len(final_detector_list) - len(data_qubits_list), len(final_detector_list)):
-        if final_detector_list[i] in Alice_Z_Logical_Operator:
+        if final_detector_list[i] in Alice_Logical_Operator:
             target_rec.append(stim.target_rec(final_detector_shift_list[i]))
     # append Bob's Z logical operators
     for i in range(len(final_detector_list) - len(data_qubits_list), len(final_detector_list)):
-        if final_detector_list[i] in Bob_Z_Logical_Operator:
+        if final_detector_list[i] in Bob_Logical_Operator:
             target_rec.append(stim.target_rec(final_detector_shift_list[i]))
     circuit.append(stim.CircuitInstruction('OBSERVABLE_INCLUDE', target_rec, [0]))
     return circuit
 
-def Direct_QECC_Circuit(d, num_layer, p_local = 0.001, p_trans = 0.001):
+def Direct_QECC_Circuit(d, num_layer, p_local = 0.001, p_trans = 0.001, basis = "Z"):
+    """Direct transmission of one encoded patch.
+    basis="Z" (default): |0>_L, noiseless M readout, observable Z_L (column d-1).
+    basis="X": |+>_L (data RX + Z_ERROR instead of R + X_ERROR; ancillas unchanged), X-type first-layer
+    detectors, noiseless MX readout with X-type readout detectors, observable X_L (row 0).
+    Layout, CX schedule and all other noise are identical."""
+    assert basis in ("Z", "X")
     circuit = stim.Circuit()
     
     data_qubit_per_row = d
@@ -1349,8 +1389,15 @@ def Direct_QECC_Circuit(d, num_layer, p_local = 0.001, p_trans = 0.001):
     qubits_all_list = data_qubits_list + stabilizer_x_list + stabilizer_z_list
     stabilizer_list = stabilizer_x_list + stabilizer_z_list
     
-    circuit.append("R", qubits_all_list)
-    circuit.append('X_ERROR', qubits_all_list, p_local)
+    if basis == "Z":
+        circuit.append("R", qubits_all_list)
+        circuit.append('X_ERROR', qubits_all_list, p_local)
+    else:
+        # [basis] data in |+> (RX followed by Z_ERROR(p) equals R, X_ERROR(p), noiseless H); ancillas unchanged
+        circuit.append("RX", data_qubits_list)
+        circuit.append("R", stabilizer_list)
+        circuit.append('Z_ERROR', data_qubits_list, p_local)
+        circuit.append('X_ERROR', stabilizer_list, p_local)
     circuit.append("TICK")
 
     def syndrome_extraction(circuit):
@@ -1432,11 +1479,12 @@ def Direct_QECC_Circuit(d, num_layer, p_local = 0.001, p_trans = 0.001):
     circuit = syndrome_extraction(circuit)
 
 
-    # first layer : only z detectors, no x detectors
+    # first layer : only z detectors, no x detectors ([basis] X: only x detectors)
+    first_layer_list = stabilizer_z_list if basis == "Z" else stabilizer_x_list
     detector_shift = 0
     for i in stabilizer_list[::-1]:
         detector_shift -= 1
-        if i in stabilizer_z_list:
+        if i in first_layer_list:
             X, Y = qubit_index_position[i]
             circuit.append("DETECTOR",[stim.target_rec(detector_shift)], [X, Y, 0])
 
@@ -1462,7 +1510,8 @@ def Direct_QECC_Circuit(d, num_layer, p_local = 0.001, p_trans = 0.001):
     # measure all data qubits
     # circuit.append('X_ERROR', data_qubits_list, p_local)
 
-    circuit.append('M', data_qubits_list)
+    # [basis] noiseless readout of all data qubits in the Z (M) or X (MX) basis
+    circuit.append('M' if basis == "Z" else 'MX', data_qubits_list)
 
 
     detector_list = []
@@ -1471,8 +1520,10 @@ def Direct_QECC_Circuit(d, num_layer, p_local = 0.001, p_trans = 0.001):
     detector_shift_list = [(-len(detector_list) + i) for i in range(len(detector_list))]
 
     # for memory circuit, perform "perfect" measurement of z stabilizers
+    # [basis] X: X-type checks; their data support has the same offsets (-1, +1, -2d-2, -2d)
+    readout_check_list = stabilizer_z_list if basis == "Z" else stabilizer_x_list
     for i in range(len(detector_list)):
-        if detector_list[i] in stabilizer_z_list:   
+        if detector_list[i] in readout_check_list:   
             target_rec = []
             target_rec.append(stim.target_rec(detector_shift_list[i]))
             # 1 stabilizer - "4" data qubits
@@ -1492,12 +1543,17 @@ def Direct_QECC_Circuit(d, num_layer, p_local = 0.001, p_trans = 0.001):
             circuit.append("DETECTOR",target_rec, [X, Y, 1])
                 
         
-    circuit.append(stim.CircuitInstruction('OBSERVABLE_INCLUDE', [stim.target_rec(-j - 1) for j in range(d)], [0]))
+    if basis == "Z":
+        circuit.append(stim.CircuitInstruction('OBSERVABLE_INCLUDE', [stim.target_rec(-j - 1) for j in range(d)], [0]))
+    else:
+        # [basis] X_L on row 0: data (row 0, col c) is at position c * d of data_qubits_list (column-major)
+        n_data = len(data_qubits_list)
+        circuit.append(stim.CircuitInstruction('OBSERVABLE_INCLUDE', [stim.target_rec(-(n_data - c * d)) for c in range(d)], [0]))
     # print(circuit)
     # circuit.to_file(f"Surface_SE_{num_layer}_{p_local}.stim")
     return circuit
 
-def EE_Surface_Transversal_CNOT_Teleportation(d, p_local=0.001, p_trans=0.001):
+def EE_Surface_Transversal_CNOT_Teleportation(d, p_local=0.001, p_trans=0.001, basis="Z"):
     """Fault Tolerant EPR State Preparation and Distribution Circuit of Rotated Surface Code
 
     (1) Initialization: Alice, Bob: |+⟩L, |0⟩L.
@@ -1516,6 +1572,10 @@ def EE_Surface_Transversal_CNOT_Teleportation(d, p_local=0.001, p_trans=0.001):
         num_layer (int): Measurement rounds during the intermediate memory process
         p_local (float, optional): Physical error rate of local operations. Defaults to 0.001.
         p_trans (float, optional): Physical error rate of transmission. Defaults to 0.001.
+        basis (str, optional): "Z" (default) reads the Z_L Z_L parity of the Bell pair with a noiseless M readout;
+            "X" reads the X_L X_L parity with a noiseless MX readout. In the X basis the round after the
+            teleported CNOT has X-type detectors X(A) X(B) with the Pauli frame of the EPR_2 (X-basis) outcomes,
+            the mirror of the Z-type detectors Z(A) Z(B) with the EPR_1 frame used in the Z basis.
 
     Returns:
         Stim.Circuit(): An object of Stim.Circuit()
@@ -1533,6 +1593,10 @@ def EE_Surface_Transversal_CNOT_Teleportation(d, p_local=0.001, p_trans=0.001):
 
     Alice_Z_Logical_Operator = []
     Bob_Z_Logical_Operator = []
+    # [basis] X_L of each patch: row 0 (x = 1)
+    Alice_X_Logical_Operator = []
+    Bob_X_Logical_Operator = []
+    assert basis in ("Z", "X")
 
     stabilizer_x_list = []
     stabilizer_z_list = []
@@ -1556,6 +1620,8 @@ def EE_Surface_Transversal_CNOT_Teleportation(d, p_local=0.001, p_trans=0.001):
             Alice_data_qubits.append(index)
             if col == 0:
                 Alice_Z_Logical_Operator.append(index)
+            if row == 0:
+                Alice_X_Logical_Operator.append(index)
             qubit_index_position[index] = (X, Y)
 
     # all the indices of Bob's qubits should be Alice_Qubit[i] + Bob_Shift
@@ -1573,6 +1639,8 @@ def EE_Surface_Transversal_CNOT_Teleportation(d, p_local=0.001, p_trans=0.001):
             Bob_data_qubits.append(index)
             if col == 0:
                 Bob_Z_Logical_Operator.append(index)
+            if row == 0:
+                Bob_X_Logical_Operator.append(index)
             qubit_index_position[index] = (X, Y)
 
     # append boundary z stabilizer ancilla qubit (Alice)
@@ -1959,31 +2027,56 @@ def EE_Surface_Transversal_CNOT_Teleportation(d, p_local=0.001, p_trans=0.001):
     detector_shift_list = [(-len(detector_list) + i) for i in range(len(detector_list))]
     
     
-    for idx, alice_ancilla in enumerate(alice_stabilizer_z_list):
-        target_rec = []
-        X, Y = qubit_index_position[alice_ancilla]
-        qubit_a = alice_ancilla
-        qubit_b = alice_ancilla + Bob_Shift
-        possible_neighbors = [
-            qubit_b - 1,
-            qubit_b + 1,
-            qubit_b - 2 * d - 2,
-            qubit_b - 2 * d
-        ]
-        target_rec.append(stim.target_rec(detector_shift_list[detector_list.index(qubit_a)]))
-        target_rec.append(stim.target_rec(detector_shift_list[detector_list.index(qubit_b)]))
-        for neighbor in possible_neighbors:
-            if neighbor in Bob_data_qubits:
-                bob_data_qubit = neighbor
-                alice_data_qubit = bob_data_qubit - Bob_Shift
-                epr1_qubit = alice_data_qubit + EPR_Shift
-                target_rec.append(stim.target_rec(detector_shift_list[detector_list.index(epr1_qubit)]))
-        
-        circuit.append("DETECTOR", target_rec, [X, Y, 0])
+    if basis == "Z":
+        for idx, alice_ancilla in enumerate(alice_stabilizer_z_list):
+            target_rec = []
+            X, Y = qubit_index_position[alice_ancilla]
+            qubit_a = alice_ancilla
+            qubit_b = alice_ancilla + Bob_Shift
+            possible_neighbors = [
+                qubit_b - 1,
+                qubit_b + 1,
+                qubit_b - 2 * d - 2,
+                qubit_b - 2 * d
+            ]
+            target_rec.append(stim.target_rec(detector_shift_list[detector_list.index(qubit_a)]))
+            target_rec.append(stim.target_rec(detector_shift_list[detector_list.index(qubit_b)]))
+            for neighbor in possible_neighbors:
+                if neighbor in Bob_data_qubits:
+                    bob_data_qubit = neighbor
+                    alice_data_qubit = bob_data_qubit - Bob_Shift
+                    epr1_qubit = alice_data_qubit + EPR_Shift
+                    target_rec.append(stim.target_rec(detector_shift_list[detector_list.index(epr1_qubit)]))
+
+            circuit.append("DETECTOR", target_rec, [X, Y, 0])
+    else:
+        # [basis] mirror: after the CNOT, X(A) X(B) of each X-type check equals the X(A) check of |+>_L (= +1),
+        # up to the Z frame Z^{m2} on Alice's data (m2 = EPR_2 X-basis outcomes).
+        for idx, alice_ancilla in enumerate(alice_stabilizer_x_list):
+            target_rec = []
+            X, Y = qubit_index_position[alice_ancilla]
+            qubit_a = alice_ancilla
+            qubit_b = alice_ancilla + Bob_Shift
+            possible_neighbors = [
+                qubit_a - 1,
+                qubit_a + 1,
+                qubit_a - 2 * d - 2,
+                qubit_a - 2 * d
+            ]
+            target_rec.append(stim.target_rec(detector_shift_list[detector_list.index(qubit_a)]))
+            target_rec.append(stim.target_rec(detector_shift_list[detector_list.index(qubit_b)]))
+            for neighbor in possible_neighbors:
+                if neighbor in Alice_data_qubits:
+                    bob_data_qubit = neighbor + Bob_Shift
+                    epr2_qubit = bob_data_qubit + EPR_Shift
+                    target_rec.append(stim.target_rec(detector_shift_list[detector_list.index(epr2_qubit)]))
+
+            circuit.append("DETECTOR", target_rec, [X, Y, 0])
 
     # (4) Final measurement
     # circuit.append('X_ERROR', data_qubits_list, p_local)
-    circuit.append('M', data_qubits_list)
+    # [basis] noiseless readout of all data qubits in the Z (M) or X (MX) basis
+    circuit.append('M' if basis == "Z" else 'MX', data_qubits_list)
 
     final_detector_list = []
     final_detector_list += (EPR_1 + EPR_2)
@@ -1993,7 +2086,8 @@ def EE_Surface_Transversal_CNOT_Teleportation(d, p_local=0.001, p_trans=0.001):
 
     final_detector_set = set(final_detector_list)
     final_data_qubits_set = set(data_qubits_list)
-    final_stabilizer_z_set = set(stabilizer_z_list)
+    # [basis] readout detectors from the Z-type checks (M) or the X-type checks (MX)
+    final_stabilizer_z_set = set(stabilizer_z_list) if basis == "Z" else set(stabilizer_x_list)
 
     # perform "perfect" measurement of z stabilizers on Alice's and Bob's patch
     for i, detector in enumerate(final_detector_list):
@@ -2018,19 +2112,31 @@ def EE_Surface_Transversal_CNOT_Teleportation(d, p_local=0.001, p_trans=0.001):
 
     # (5) Check fidelity, logical observables
     target_rec = []
-    # append Alice's Z logical operators
-    for i in range(len(final_detector_list) - len(data_qubits_list), len(final_detector_list)):
-        if final_detector_list[i] in Alice_Z_Logical_Operator:
-            target_rec.append(stim.target_rec(final_detector_shift_list[i]))
-    # append Bob's Z logical operators
-    for i in range(len(final_detector_list) - len(data_qubits_list), len(final_detector_list)):
-        if final_detector_list[i] in Bob_Z_Logical_Operator:
-            target_rec.append(stim.target_rec(final_detector_shift_list[i]))
-            '''Pauli Frame'''
-            alice_data_qubit = final_detector_list[i] - Bob_Shift
-            epr1_qubit = alice_data_qubit + EPR_Shift
-            target_rec.append(stim.target_rec(final_detector_shift_list[final_detector_list.index(epr1_qubit)]))
-            
+    if basis == "Z":
+        # append Alice's Z logical operators
+        for i in range(len(final_detector_list) - len(data_qubits_list), len(final_detector_list)):
+            if final_detector_list[i] in Alice_Z_Logical_Operator:
+                target_rec.append(stim.target_rec(final_detector_shift_list[i]))
+        # append Bob's Z logical operators
+        for i in range(len(final_detector_list) - len(data_qubits_list), len(final_detector_list)):
+            if final_detector_list[i] in Bob_Z_Logical_Operator:
+                target_rec.append(stim.target_rec(final_detector_shift_list[i]))
+                '''Pauli Frame'''
+                alice_data_qubit = final_detector_list[i] - Bob_Shift
+                epr1_qubit = alice_data_qubit + EPR_Shift
+                target_rec.append(stim.target_rec(final_detector_shift_list[final_detector_list.index(epr1_qubit)]))
+
+    else:
+        # [basis] X_L(A) X_L(B) (row 0 of each patch); Pauli frame: Z^{m2} on Alice's data, m2 = EPR_2 outcomes
+        for i in range(len(final_detector_list) - len(data_qubits_list), len(final_detector_list)):
+            if final_detector_list[i] in Alice_X_Logical_Operator:
+                target_rec.append(stim.target_rec(final_detector_shift_list[i]))
+                epr2_qubit = final_detector_list[i] + Bob_Shift + EPR_Shift
+                target_rec.append(stim.target_rec(final_detector_shift_list[final_detector_list.index(epr2_qubit)]))
+        for i in range(len(final_detector_list) - len(data_qubits_list), len(final_detector_list)):
+            if final_detector_list[i] in Bob_X_Logical_Operator:
+                target_rec.append(stim.target_rec(final_detector_shift_list[i]))
+
     circuit.append(stim.CircuitInstruction('OBSERVABLE_INCLUDE', target_rec, [0]))
     # circuit.to_file(f"Surface_2nd_{p_local}_{p_trans}.stim")
     return circuit

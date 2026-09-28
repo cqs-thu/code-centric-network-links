@@ -26,7 +26,7 @@ import matplotlib.pyplot as plt
 # User-tunable knobs
 # ---------------------------
 CAL_NUM = 100000
-NUM_TRIALS = 10
+NUM_TRIALS = 2          # 2 x SHOTS_EVAL = 2e6 evaluation shots per point (figure 8)
 P_LOCAL_LIST = [0.01, 0.005, 0.001]
 P_TRANS_LIST = [0.025, 0.050, 0.075, 0.100, 0.125, 0.150, 0.175, 0.200, 0.225, 0.25]
 D = 3
@@ -71,9 +71,11 @@ def build_circuit_and_sampler(d, num_layer, p_local, p_trans):
 
 def unconditional_ler_pymatching(sampler, matcher_std, shots):
     synd_eval, obs_eval = sampler.sample(shots, separate_observables=True)
-    preds = matcher_std.decode_batch(synd_eval)
+    preds = np.asarray(matcher_std.decode_batch(synd_eval))
     y_true = obs_eval[:, 0].astype(np.uint8)
-    y_pred = (preds % 2).astype(np.uint8)
+    # decode_batch returns shape (shots, num_observables); compare shot by shot.
+    y_pred = (preds.reshape(len(y_true), -1)[:, 0] % 2).astype(np.uint8)
+    assert y_pred.shape == y_true.shape
     return float(np.mean(y_true != y_pred))
 
 def unconditional_ler_nn(nndecoder, sampler, shots):
@@ -286,10 +288,10 @@ def plot_pm(x, y_unf, y_sw, y_zg, path):
     plt.plot(x, y_zg, color="#FF3333", marker='^', linewidth=2.5,
              label=f"DS + MWPM")
     
-     # --- add p_logical = p_trans line ---
+     # --- break-even line: an unencoded |0> read out in Z fails with probability 2 p_trans / 3 ---
     xmin, xmax = min(x), max(x)
     p_line = np.linspace(xmin, xmax, 100)
-    plt.plot(p_line, p_line, color = 'gray', linestyle = ':', linewidth=2, label="Break-even line")
+    plt.plot(p_line, 2 * p_line / 3, color = 'gray', linestyle = ':', linewidth=2, label="Break-even line")
 
     plt.ylim(top=0.49)
     # plt.yscale('log')
@@ -312,10 +314,10 @@ def plot_nn(x, y_unf, y_swnn, y_nnfilter, path):
     plt.plot(x, y_nnfilter, color="#37A546", marker='^', linewidth=2.5,
              label=f"DS + NN")
 
-     # --- add p_logical = p_trans line ---
+     # --- break-even line: an unencoded |0> read out in Z fails with probability 2 p_trans / 3 ---
     xmin, xmax = min(x), max(x)
     p_line = np.linspace(xmin, xmax, 100)
-    plt.plot(p_line, p_line, color = 'gray', linestyle = ':', linewidth=2, label="Break-even line")
+    plt.plot(p_line, 2 * p_line / 3, color = 'gray', linestyle = ':', linewidth=2, label="Break-even line")
 
     # plt.yscale('log')
     plt.ylim(top=0.49)

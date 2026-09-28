@@ -29,7 +29,10 @@ def get_info(Code, shift = 0):
     return info_dict
 
 '''circuit of protocol I: Entanglement Distillation'''
-def ED_circuit(Code, p_local, p_trans, zx_detector = False):
+def ED_circuit(Code, p_local, p_trans, zx_detector = False, basis = 'Z'):
+    # basis='Z': |0>_L-type readout, observable Z_L(A) Z_L(B) (original circuit).
+    # basis='X': same preparation, gates and noise; noiseless MX readout, observable X_L(A) X_L(B).
+    assert basis in ('Z', 'X')
     Alice_info = get_info(Code=Code, shift=0)
     Bob_Shift = Code.num_checks + Code.num_qubits
     Bob_info = get_info(Code=Code, shift=Bob_Shift)
@@ -173,7 +176,7 @@ def ED_circuit(Code, p_local, p_trans, zx_detector = False):
         if zx_detector:
             non_detector_ancilla = Alice_ancilla_x_qubits + Alice_ancilla_z_qubits
         else:
-            non_detector_ancilla = Alice_ancilla_x_qubits + Alice_ancilla_z_qubits + Bob_ancilla_x_qubits
+            non_detector_ancilla = Alice_ancilla_x_qubits + Alice_ancilla_z_qubits + (Bob_ancilla_x_qubits if basis == 'Z' else Bob_ancilla_z_qubits)
             
         if i in non_detector_ancilla:
             continue
@@ -183,7 +186,7 @@ def ED_circuit(Code, p_local, p_trans, zx_detector = False):
     circuit.append("SHIFT_COORDS", [], [0, 1])
 
     # measure all data qubits
-    circuit.append('M', All_data_qubits)
+    circuit.append('M' if basis == 'Z' else 'MX', All_data_qubits)
 
     logical_x_operators = Code.get_logical_ops()[0]
     logical_z_operators = Code.get_logical_ops()[1]
@@ -198,24 +201,24 @@ def ED_circuit(Code, p_local, p_trans, zx_detector = False):
     
     # perfect z measurement
     for i, detector in enumerate(detector_list):
-        if detector in Alice_ancilla_z_qubits:
+        if detector in (Alice_ancilla_z_qubits if basis == 'Z' else Alice_ancilla_x_qubits):
             target_rec = []
             target_rec.append(stim.target_rec(detector_shift_list[i]))
             # one stabilizer check - many data qubits
-            idx = Alice_ancilla_z_qubits.index(detector)
-            stabilizer = matrix_z[idx]
+            idx = (Alice_ancilla_z_qubits if basis == 'Z' else Alice_ancilla_x_qubits).index(detector)
+            stabilizer = (matrix_z if basis == 'Z' else matrix_x)[idx]
             alice_data_qubits = [Alice_data_qubits[j] for j in np.where(stabilizer == 1)[0]]
             for check_qubit in alice_data_qubits:
                 target_rec.append(stim.target_rec(detector_shift_list[detector_list.index(check_qubit)]))
             circuit.append("DETECTOR", target_rec, [detector, 0])
             
     for i, detector in enumerate(detector_list):
-        if detector in Bob_ancilla_z_qubits:
+        if detector in (Bob_ancilla_z_qubits if basis == 'Z' else Bob_ancilla_x_qubits):
             target_rec = []
             target_rec.append(stim.target_rec(detector_shift_list[i]))
             # one stabilizer check - many data qubits
-            idx = Bob_ancilla_z_qubits.index(detector)
-            stabilizer = matrix_z[idx]
+            idx = (Bob_ancilla_z_qubits if basis == 'Z' else Bob_ancilla_x_qubits).index(detector)
+            stabilizer = (matrix_z if basis == 'Z' else matrix_x)[idx]
             bob_data_qubits = [Bob_data_qubits[j] for j in np.where(stabilizer == 1)[0]]
             for check_qubit in bob_data_qubits:
                 target_rec.append(stim.target_rec(detector_shift_list[detector_list.index(check_qubit)]))
@@ -224,7 +227,8 @@ def ED_circuit(Code, p_local, p_trans, zx_detector = False):
     for k in range(K):
         target_rec = []
         logical_z_operator = logical_z_operators[k]
-        data_qubits = [Alice_data_qubits[j - N] for j in np.where(logical_z_operator == 1)[0]] + [Bob_data_qubits[j - N] for j in np.where(logical_z_operator == 1)[0]]
+        support = np.where(logical_z_operator == 1)[0] - N if basis == 'Z' else np.where(np.asarray(logical_x_operators[k])[:N] == 1)[0]
+        data_qubits = [Alice_data_qubits[j] for j in support] + [Bob_data_qubits[j] for j in support]
         for i in range(len(detector_list)):
             if detector_list[i] in data_qubits:
                 target_rec.append(stim.target_rec(detector_shift_list[i]))
@@ -234,7 +238,10 @@ def ED_circuit(Code, p_local, p_trans, zx_detector = False):
 
 
 '''circuit of protocol II: Entanglement Encoding'''
-def EE_circuit(Code, p_local, p_trans, zx_detector = False):
+def EE_circuit(Code, p_local, p_trans, zx_detector = False, basis = 'Z'):
+    # basis='Z': observable Z_L(A) Z_L(B) (original circuit).
+    # basis='X': same preparation, gates and noise; noiseless MX readout, observable X_L(A) X_L(B).
+    assert basis in ('Z', 'X')
     Alice_info = get_info(Code=Code, shift=0)
     Bob_Shift = Code.num_checks + Code.num_qubits
     Bob_info = get_info(Code=Code, shift=Bob_Shift)
@@ -398,8 +405,13 @@ def EE_circuit(Code, p_local, p_trans, zx_detector = False):
         if zx_detector:
             non_detector_ancilla = Alice_ancilla_x_qubits + Alice_ancilla_z_qubits
         else:
-            non_detector_ancilla = Alice_ancilla_x_qubits + Alice_ancilla_z_qubits + Bob_ancilla_x_qubits
+            non_detector_ancilla = Alice_ancilla_x_qubits + Alice_ancilla_z_qubits + (Bob_ancilla_x_qubits if basis == 'Z' else Bob_ancilla_z_qubits)
         if i in non_detector_ancilla:
+            continue
+        if basis == 'X' and i in Bob_ancilla_x_qubits:
+            # after the transversal CNOT A->B: X_A(r2) = X_A(r1) X_B(r1), X_B(r2) = X_B(r1),
+            # so X_B(r2) + X_A(r2) + X_A(r1) is deterministic (the Z-type mirror of the detector below)
+            circuit.append("DETECTOR", [stim.target_rec(detector_shift), stim.target_rec(detector_shift - len(Ancilla_qubits) // 2), stim.target_rec(detector_shift - len(Ancilla_qubits) // 2 - len(Ancilla_qubits))], [i - Bob_Shift, 0])
             continue
         circuit.append("DETECTOR", [stim.target_rec(detector_shift), stim.target_rec(detector_shift - len(Ancilla_qubits) // 2), stim.target_rec(detector_shift - len(Ancilla_qubits))], [i - Bob_Shift, 0])
 
@@ -407,7 +419,7 @@ def EE_circuit(Code, p_local, p_trans, zx_detector = False):
 
 
     # measure all data qubits
-    circuit.append('M', All_data_qubits)
+    circuit.append('M' if basis == 'Z' else 'MX', All_data_qubits)
 
     logical_x_operators = Code.get_logical_ops()[0]
     logical_z_operators = Code.get_logical_ops()[1]
@@ -422,24 +434,24 @@ def EE_circuit(Code, p_local, p_trans, zx_detector = False):
     
     # perfect z measurement
     for i, detector in enumerate(detector_list):
-        if detector in Alice_ancilla_z_qubits:
+        if detector in (Alice_ancilla_z_qubits if basis == 'Z' else Alice_ancilla_x_qubits):
             target_rec = []
             target_rec.append(stim.target_rec(detector_shift_list[i]))
             # one stabilizer check - many data qubits
-            idx = Alice_ancilla_z_qubits.index(detector)
-            stabilizer = matrix_z[idx]
+            idx = (Alice_ancilla_z_qubits if basis == 'Z' else Alice_ancilla_x_qubits).index(detector)
+            stabilizer = (matrix_z if basis == 'Z' else matrix_x)[idx]
             alice_data_qubits = [Alice_data_qubits[j] for j in np.where(stabilizer == 1)[0]]
             for check_qubit in alice_data_qubits:
                 target_rec.append(stim.target_rec(detector_shift_list[detector_list.index(check_qubit)]))
             circuit.append("DETECTOR", target_rec, [detector, 0])
             
     for i, detector in enumerate(detector_list):
-        if detector in Bob_ancilla_z_qubits:
+        if detector in (Bob_ancilla_z_qubits if basis == 'Z' else Bob_ancilla_x_qubits):
             target_rec = []
             target_rec.append(stim.target_rec(detector_shift_list[i]))
             # one stabilizer check - many data qubits
-            idx = Bob_ancilla_z_qubits.index(detector)
-            stabilizer = matrix_z[idx]
+            idx = (Bob_ancilla_z_qubits if basis == 'Z' else Bob_ancilla_x_qubits).index(detector)
+            stabilizer = (matrix_z if basis == 'Z' else matrix_x)[idx]
             bob_data_qubits = [Bob_data_qubits[j] for j in np.where(stabilizer == 1)[0]]
             for check_qubit in bob_data_qubits:
                 target_rec.append(stim.target_rec(detector_shift_list[detector_list.index(check_qubit)]))
@@ -448,7 +460,8 @@ def EE_circuit(Code, p_local, p_trans, zx_detector = False):
     for k in range(K):
         target_rec = []
         logical_z_operator = logical_z_operators[k]
-        data_qubits = [Alice_data_qubits[j - N] for j in np.where(logical_z_operator == 1)[0]] + [Bob_data_qubits[j - N] for j in np.where(logical_z_operator == 1)[0]]
+        support = np.where(logical_z_operator == 1)[0] - N if basis == 'Z' else np.where(np.asarray(logical_x_operators[k])[:N] == 1)[0]
+        data_qubits = [Alice_data_qubits[j] for j in support] + [Bob_data_qubits[j] for j in support]
         for i in range(len(detector_list)):
             if detector_list[i] in data_qubits:
                 target_rec.append(stim.target_rec(detector_shift_list[i]))
@@ -459,7 +472,11 @@ def EE_circuit(Code, p_local, p_trans, zx_detector = False):
 
 
 '''circuit of protocol III: QECC Transimission'''
-def QECC_circuit_Plus(Code, p_local, p_trans, zx_detector = False):
+def QECC_circuit_Plus(Code, p_local, p_trans, zx_detector = False, basis = 'Z'):
+    # basis='Z': encodes |0>_L and reads Z_L (original circuit; the name notwithstanding, the state is |0>_L).
+    # basis='X': X<->Z mirror: encodes |+>_L (RX + Z_ERROR on data, CNOT directions of the encoder reversed),
+    #            same syndrome extraction and noise, noiseless MX readout, observable X_L.
+    assert basis in ('Z', 'X')
     Alice_info = get_info(Code=Code, shift=0)
 
     # initial circuits
@@ -473,9 +490,15 @@ def QECC_circuit_Plus(Code, p_local, p_trans, zx_detector = False):
     Ancilla_z_qubits = Alice_ancilla_z_qubits
 
     circuit = stim.Circuit()
-    circuit.append("R", All_qubits)
-    # add noise on data qubits only
-    circuit.append('X_ERROR', All_data_qubits, p_local)
+    if basis == 'Z':
+        circuit.append("R", All_qubits)
+        # add noise on data qubits only
+        circuit.append('X_ERROR', All_data_qubits, p_local)
+    else:
+        # X<->Z mirror of the |0>_L encoder: data prepared in |+> with a Z preparation error
+        circuit.append("RX", All_data_qubits)
+        circuit.append("R", Ancilla_qubits)
+        circuit.append('Z_ERROR', All_data_qubits, p_local)
 
     # encoding stabilizer measurement
     matrix_x = Code.matrix_x
@@ -484,37 +507,39 @@ def QECC_circuit_Plus(Code, p_local, p_trans, zx_detector = False):
     # encoding process:
     # 2 <-> 3, 5 <-> 6
     circuit.append("H", [Alice_data_qubits[0], Alice_data_qubits[1], Alice_data_qubits[3]])
-    circuit.append("CX", [Alice_data_qubits[5], Alice_data_qubits[2]])
+    # basis='X': every encoder CNOT is applied with control and target exchanged (H-conjugate of the |0>_L encoder)
+    _enc = (lambda a, b: [a, b]) if basis == 'Z' else (lambda a, b: [b, a])
+    circuit.append("CX", _enc(Alice_data_qubits[5], Alice_data_qubits[2]))
     circuit.append('DEPOLARIZE2', [Alice_data_qubits[5], Alice_data_qubits[2]], p_local)
     circuit.append("TICK")
-    circuit.append("CX", [Alice_data_qubits[5], Alice_data_qubits[4]])
+    circuit.append("CX", _enc(Alice_data_qubits[5], Alice_data_qubits[4]))
     circuit.append('DEPOLARIZE2', [Alice_data_qubits[5], Alice_data_qubits[4]], p_local)
     circuit.append("TICK")
-    circuit.append("CX", [Alice_data_qubits[0], Alice_data_qubits[2]])
+    circuit.append("CX", _enc(Alice_data_qubits[0], Alice_data_qubits[2]))
     circuit.append('DEPOLARIZE2', [Alice_data_qubits[0], Alice_data_qubits[2]], p_local)
     circuit.append("TICK")
-    circuit.append("CX", [Alice_data_qubits[0], Alice_data_qubits[4]])
+    circuit.append("CX", _enc(Alice_data_qubits[0], Alice_data_qubits[4]))
     circuit.append('DEPOLARIZE2', [Alice_data_qubits[0], Alice_data_qubits[4]], p_local)
     circuit.append("TICK")
-    circuit.append("CX", [Alice_data_qubits[0], Alice_data_qubits[6]])
+    circuit.append("CX", _enc(Alice_data_qubits[0], Alice_data_qubits[6]))
     circuit.append('DEPOLARIZE2', [Alice_data_qubits[0], Alice_data_qubits[6]], p_local)
     circuit.append("TICK")
-    circuit.append("CX", [Alice_data_qubits[1], Alice_data_qubits[2]])
+    circuit.append("CX", _enc(Alice_data_qubits[1], Alice_data_qubits[2]))
     circuit.append('DEPOLARIZE2', [Alice_data_qubits[1], Alice_data_qubits[2]], p_local)
     circuit.append("TICK")
-    circuit.append("CX", [Alice_data_qubits[1], Alice_data_qubits[6]])
+    circuit.append("CX", _enc(Alice_data_qubits[1], Alice_data_qubits[6]))
     circuit.append('DEPOLARIZE2', [Alice_data_qubits[1], Alice_data_qubits[6]], p_local)
     circuit.append("TICK")
-    circuit.append("CX", [Alice_data_qubits[1], Alice_data_qubits[5]])
+    circuit.append("CX", _enc(Alice_data_qubits[1], Alice_data_qubits[5]))
     circuit.append('DEPOLARIZE2', [Alice_data_qubits[1], Alice_data_qubits[5]], p_local)
     circuit.append("TICK")
-    circuit.append("CX", [Alice_data_qubits[3], Alice_data_qubits[4]])
+    circuit.append("CX", _enc(Alice_data_qubits[3], Alice_data_qubits[4]))
     circuit.append('DEPOLARIZE2', [Alice_data_qubits[3], Alice_data_qubits[4]], p_local)
     circuit.append("TICK")
-    circuit.append("CX", [Alice_data_qubits[3], Alice_data_qubits[6]])
+    circuit.append("CX", _enc(Alice_data_qubits[3], Alice_data_qubits[6]))
     circuit.append('DEPOLARIZE2', [Alice_data_qubits[3], Alice_data_qubits[6]], p_local)
     circuit.append("TICK")
-    circuit.append("CX", [Alice_data_qubits[3], Alice_data_qubits[5]])
+    circuit.append("CX", _enc(Alice_data_qubits[3], Alice_data_qubits[5]))
     circuit.append('DEPOLARIZE2', [Alice_data_qubits[3], Alice_data_qubits[5]], p_local)
     circuit.append("TICK")
     
@@ -622,7 +647,7 @@ def QECC_circuit_Plus(Code, p_local, p_trans, zx_detector = False):
         if zx_detector:
             non_detector_ancilla = []
         else:
-            non_detector_ancilla = Alice_ancilla_x_qubits
+            non_detector_ancilla = Alice_ancilla_x_qubits if basis == 'Z' else Alice_ancilla_z_qubits
         if i in non_detector_ancilla:
             continue
         circuit.append("DETECTOR", [stim.target_rec(detector_shift)], [i, 0])
@@ -735,13 +760,13 @@ def QECC_circuit_Plus(Code, p_local, p_trans, zx_detector = False):
         if zx_detector:
             non_detector_ancilla = []
         else:
-            non_detector_ancilla = Alice_ancilla_x_qubits
+            non_detector_ancilla = Alice_ancilla_x_qubits if basis == 'Z' else Alice_ancilla_z_qubits
         if i in non_detector_ancilla:
             continue
         circuit.append("DETECTOR", [stim.target_rec(detector_shift), stim.target_rec(detector_shift - len(Ancilla_qubits))], [i, 0])
 
     # measure all data qubits
-    circuit.append('M', All_data_qubits)
+    circuit.append('M' if basis == 'Z' else 'MX', All_data_qubits)
 
     logical_x_operators = Code.get_logical_ops()[0]
     logical_z_operators = Code.get_logical_ops()[1]
@@ -756,12 +781,12 @@ def QECC_circuit_Plus(Code, p_local, p_trans, zx_detector = False):
         
     # perfect z measurement
     for i, detector in enumerate(detector_list):
-        if detector in Alice_ancilla_z_qubits:
+        if detector in (Alice_ancilla_z_qubits if basis == 'Z' else Alice_ancilla_x_qubits):
             target_rec = []
             target_rec.append(stim.target_rec(detector_shift_list[i]))
             # one stabilizer check - many data qubits
-            idx = Alice_ancilla_z_qubits.index(detector)
-            stabilizer = matrix_z[idx]
+            idx = (Alice_ancilla_z_qubits if basis == 'Z' else Alice_ancilla_x_qubits).index(detector)
+            stabilizer = (matrix_z if basis == 'Z' else matrix_x)[idx]
             alice_data_qubits = [Alice_data_qubits[j] for j in np.where(stabilizer == 1)[0]]
             for check_qubit in alice_data_qubits:
                 target_rec.append(stim.target_rec(detector_shift_list[detector_list.index(check_qubit)]))
@@ -771,7 +796,8 @@ def QECC_circuit_Plus(Code, p_local, p_trans, zx_detector = False):
     for k in range(K):
         target_rec = []
         logical_z_operator = logical_z_operators[k]
-        data_qubits = [Alice_data_qubits[j - N] for j in np.where(logical_z_operator == 1)[0]]
+        support = np.where(logical_z_operator == 1)[0] - N if basis == 'Z' else np.where(np.asarray(logical_x_operators[k])[:N] == 1)[0]
+        data_qubits = [Alice_data_qubits[j] for j in support]
         for i in range(len(detector_list)):
             if detector_list[i] in data_qubits:
                 target_rec.append(stim.target_rec(detector_shift_list[i]))
@@ -781,7 +807,11 @@ def QECC_circuit_Plus(Code, p_local, p_trans, zx_detector = False):
     return circuit
 
 '''circuit of protocal II: Transveral CNOT using teleportation_Align'''
-def EE_circuit_Transversal_CNOT_Teleportation_Aligned(Code, p_local, p_trans):
+def EE_circuit_Transversal_CNOT_Teleportation_Aligned(Code, p_local, p_trans, basis = 'Z'):
+    # basis='Z': observable Z_L(A) Z_L(B) with the X-frame from EPR_1 (original circuit).
+    # basis='X': same preparation, gates and noise; noiseless MX readout, observable X_L(A) X_L(B)
+    #            with the Z-frame from the X-basis outcomes of EPR_2.
+    assert basis in ('Z', 'X')
     Alice_info = get_info(Code=Code, shift=0)
     Bob_Shift = Code.num_checks + Code.num_qubits
     Bob_info = get_info(Code=Code, shift=Bob_Shift)
@@ -973,7 +1003,8 @@ def EE_circuit_Transversal_CNOT_Teleportation_Aligned(Code, p_local, p_trans):
     detector_list += Ancilla_qubits
     detector_shift_list = [(-len(detector_list) + i) for i in range(len(detector_list))]
     
-    for idx, ancilla_qubit in enumerate(Bob_ancilla_z_qubits):
+    if basis == 'Z':
+      for idx, ancilla_qubit in enumerate(Bob_ancilla_z_qubits):
         stabilizer = matrix_z[idx]
         data_qubits = [Bob_data_qubits[j] for j in np.where(stabilizer == 1)[0]]
         target_rec = []
@@ -988,12 +1019,28 @@ def EE_circuit_Transversal_CNOT_Teleportation_Aligned(Code, p_local, p_trans):
             target_rec.append(stim.target_rec(detector_shift_list[detector_list.index(epr1_qubit)]))
             
         circuit.append("DETECTOR", target_rec, [ancilla_qubit, 0])
+    else:
+      # X-type mirror: X_A(r2) X_B(r2) times the Z-frame on Alice (X-basis outcomes of EPR_2 on the check support)
+      for idx, ancilla_qubit in enumerate(Alice_ancilla_x_qubits):
+        stabilizer = matrix_x[idx]
+        data_qubits = [Alice_data_qubits[j] for j in np.where(stabilizer == 1)[0]]
+        target_rec = []
+        bob_ancilla_qubit = ancilla_qubit + Bob_Shift
+        target_rec.append(stim.target_rec(detector_shift_list[detector_list.index(ancilla_qubit)]))
+        target_rec.append(stim.target_rec(detector_shift_list[detector_list.index(bob_ancilla_qubit)]))
+
+        ''' Pauli Frame '''
+        for alice_data_qubit in data_qubits:
+            epr2_qubit = alice_data_qubit + Bob_Shift + EPR_Shift
+            target_rec.append(stim.target_rec(detector_shift_list[detector_list.index(epr2_qubit)]))
+
+        circuit.append("DETECTOR", target_rec, [ancilla_qubit, 0])
 
     circuit.append("SHIFT_COORDS", [], [0, 1])
 
     # measure all data qubits
     # circuit.append("H", Alice_data_qubits)
-    circuit.append('M', All_data_qubits)
+    circuit.append('M' if basis == 'Z' else 'MX', All_data_qubits)
 
     logical_x_operators = Code.get_logical_ops()[0]
     logical_z_operators = Code.get_logical_ops()[1]
@@ -1009,24 +1056,24 @@ def EE_circuit_Transversal_CNOT_Teleportation_Aligned(Code, p_local, p_trans):
 
     # perfect z measurement
     for i, detector in enumerate(detector_list):
-        if detector in Alice_ancilla_z_qubits:
+        if detector in (Alice_ancilla_z_qubits if basis == 'Z' else Alice_ancilla_x_qubits):
             target_rec = []
             target_rec.append(stim.target_rec(detector_shift_list[i]))
             # one stabilizer check - many data qubits
-            idx = Alice_ancilla_z_qubits.index(detector)
-            stabilizer = matrix_z[idx]
+            idx = (Alice_ancilla_z_qubits if basis == 'Z' else Alice_ancilla_x_qubits).index(detector)
+            stabilizer = (matrix_z if basis == 'Z' else matrix_x)[idx]
             alice_data_qubits = [Alice_data_qubits[j] for j in np.where(stabilizer == 1)[0]]
             for check_qubit in alice_data_qubits:
                 target_rec.append(stim.target_rec(detector_shift_list[detector_list.index(check_qubit)]))
             circuit.append("DETECTOR", target_rec, [detector, 0])
             
     for i, detector in enumerate(detector_list):
-        if detector in Bob_ancilla_z_qubits:
+        if detector in (Bob_ancilla_z_qubits if basis == 'Z' else Bob_ancilla_x_qubits):
             target_rec = []
             target_rec.append(stim.target_rec(detector_shift_list[i]))
             # one stabilizer check - many data qubits
-            idx = Bob_ancilla_z_qubits.index(detector)
-            stabilizer = matrix_z[idx]
+            idx = (Bob_ancilla_z_qubits if basis == 'Z' else Bob_ancilla_x_qubits).index(detector)
+            stabilizer = (matrix_z if basis == 'Z' else matrix_x)[idx]
             bob_data_qubits = [Bob_data_qubits[j] for j in np.where(stabilizer == 1)[0]]
             for check_qubit in bob_data_qubits:
                 target_rec.append(stim.target_rec(detector_shift_list[detector_list.index(check_qubit)]))
@@ -1035,15 +1082,20 @@ def EE_circuit_Transversal_CNOT_Teleportation_Aligned(Code, p_local, p_trans):
     for k in range(K):
         target_rec = []
         logical_z_operator = logical_z_operators[k]
-        data_qubits = [Alice_data_qubits[j - N] for j in np.where(logical_z_operator == 1)[0]] + [Bob_data_qubits[j - N] for j in np.where(logical_z_operator == 1)[0]]
+        support = np.where(logical_z_operator == 1)[0] - N if basis == 'Z' else np.where(np.asarray(logical_x_operators[k])[:N] == 1)[0]
+        data_qubits = [Alice_data_qubits[j] for j in support] + [Bob_data_qubits[j] for j in support]
         for i in range(len(detector_list)):
             if detector_list[i] in data_qubits:
                 target_rec.append(stim.target_rec(detector_shift_list[i]))
                 ''' Pauli Frame '''
-                if detector_list[i] in Bob_data_qubits:
+                if basis == 'Z' and detector_list[i] in Bob_data_qubits:
                     alice_data_qubit = detector_list[i] - Bob_Shift
                     epr1_qubit = alice_data_qubit + EPR_Shift
                     target_rec.append(stim.target_rec(detector_shift_list[detector_list.index(epr1_qubit)]))
+                if basis == 'X' and detector_list[i] in Alice_data_qubits:
+                    # Z-frame on Alice: X-basis outcome of EPR_2 at the same code position
+                    epr2_qubit = detector_list[i] + Bob_Shift + EPR_Shift
+                    target_rec.append(stim.target_rec(detector_shift_list[detector_list.index(epr2_qubit)]))
                 
         circuit.append(stim.CircuitInstruction('OBSERVABLE_INCLUDE', target_rec, [k]))
 

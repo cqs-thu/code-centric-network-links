@@ -53,6 +53,18 @@ def add_result_to_cache(p_local, p_trans, success_rate, logical_error, cache_fil
         new_data.to_csv(cache_file_path, mode='w', header=True, index=False)
 
 
+def _two_basis(run):
+    # acceptance does not depend on the readout basis; logical error = average over the Z and X bases
+    acc_z, ler_z = run('Z')
+    acc_x, ler_x = run('X')
+    return (acc_z + acc_x) / 2, (ler_z + ler_x) / 2
+
+
+def _basis_avg(result):
+    acceptance, zz, xx = result
+    return acceptance, (zz + xx) / 2
+
+
 def prepare_data(p_local_list, p_transmission_list):
     """
     (Corrected) Runs calculations or loads from cache and returns a consolidated DataFrame.
@@ -61,12 +73,14 @@ def prepare_data(p_local_list, p_transmission_list):
     os.makedirs(results_dir, exist_ok=True)
     
     protocols_to_run = {
-        'Distill': {'cache': os.path.join(results_dir, 'distillation_cache.csv'),
-                    'calc': lambda pl, pt: cal_DEJMPS_detection(depth=3, p_local=pl, p_trans=pt, shots=5000000)},
-        'Surface': {'cache': os.path.join(results_dir, 'surface_cache.csv'),
-                    'calc': lambda pl, pt: cal_surface_detection(d=3, num_layer=0, p_local=pl, p_trans=pt, shots=5000000, protocol_type="distillation")},
-        'Steane':  {'cache': os.path.join(results_dir, 'steane_cache.csv'),
-                    'calc': lambda pl, pt: cal_steane_detection(p_local=pl, p_trans=pt, shots=5000000, protocol_type=1)}
+        # logical error rate = average of the Z- and X-basis failure probabilities, with noiseless final readout:
+        # repetition code through its ZZ- and XX-parity errors, surface and Steane codes through Z- and X-basis runs (_two_basis)
+        'Distill': {'cache': os.path.join(results_dir, 'distillation_basis_avg_cache.csv'),
+                    'calc': lambda pl, pt: _basis_avg(cal_DEJMPS_detection_per_basis(depth=3, p_local=pl, p_trans=pt, shots=10_000_000))},
+        'Surface': {'cache': os.path.join(results_dir, 'surface_two_basis_cache.csv'),
+                    'calc': lambda pl, pt: _two_basis(lambda b: cal_surface_detection(d=3, num_layer=0, p_local=pl, p_trans=pt, shots=10_000_000, protocol_type="distillation", min_failures=100, basis=b))},
+        'Steane':  {'cache': os.path.join(results_dir, 'steane_two_basis_cache.csv'),
+                    'calc': lambda pl, pt: _two_basis(lambda b: cal_steane_detection(p_local=pl, p_trans=pt, shots=10_000_000, protocol_type=1, zx_detector=True, min_failures=100, basis=b))}
     }
 
     all_results = []
@@ -86,7 +100,7 @@ def prepare_data(p_local_list, p_transmission_list):
     return pd.DataFrame(all_results)
 
 
-def create_comparison_bar_chart(df, y_col, y_label, title, output_filename, value_is_inverse=False):
+def create_comparison_bar_chart(df, y_col, y_label, title, output_filename, value_is_inverse=False, ylim=None):
     """
     (UPDATED) Creates and saves a layered, grouped bar chart.
     The new 'value_is_inverse' flag handles plots like Success Rate.
@@ -130,6 +144,8 @@ def create_comparison_bar_chart(df, y_col, y_label, title, output_filename, valu
     ax.set_ylabel(y_label, fontweight='bold')
     if title == 'Logical Error Rate Comparison':
         ax.set_yscale('log')
+    if ylim is not None:
+        ax.set_ylim(*ylim)
     ax.set_xticks(x)
     ax.set_xticklabels(xtick_labels)
 
@@ -145,28 +161,25 @@ def create_comparison_bar_chart(df, y_col, y_label, title, output_filename, valu
         Patch(facecolor=gray_palette[i], edgecolor='black', label=f"{p_local_values[i]}")
         for i in range(len(p_local_values))
     ]
-    contact_point_x = 0.79
-    if title == 'Logical Error Rate Comparison':
-        legend1 = ax.legend(handles=code_legend_handles, title="Code", 
-                        loc='lower right', 
-                        bbox_to_anchor=(contact_point_x, 0), frameon=True)
-
-        legend2 = ax.legend(handles=local_error_legend_handles, title="Local Error",
-                        loc='lower left',
-                        bbox_to_anchor=(contact_point_x, 0), frameon=True)
-    else:
-        legend1 = ax.legend(handles=code_legend_handles, title="Code", 
-                        loc='upper right', 
-                        bbox_to_anchor=(contact_point_x, 1.0), frameon=True)
-
-        legend2 = ax.legend(handles=local_error_legend_handles, title="Local Error",
-                        loc='upper left',
-                        bbox_to_anchor=(contact_point_x, 1.0), frameon=True)
-
-    ax.add_artist(legend1)
+    # the two legends are drawn as two rows above the axes ("Code:" on top, "Local Error:" below),
+    # so that no legend box covers a bar
+    kw = dict(frameon=True, columnspacing=1.0, handletextpad=0.5, borderaxespad=0.2)
+    legend_local = ax.legend(handles=[Patch(alpha=0, label='Local Error:')] + local_error_legend_handles, ncol=5,
+                             loc='lower center', bbox_to_anchor=(0.5, 1.0), **kw)
+    fig.canvas.draw()
+    row_h = legend_local.get_window_extent().transformed(ax.transAxes.inverted()).height
+    legend_code = ax.legend(handles=[Patch(alpha=0, label='Code:')] + code_legend_handles, ncol=4,
+                            loc='lower center', bbox_to_anchor=(0.5, 1.0 + row_h), **kw)
+    ax.add_artist(legend_local)
     ax.grid(True, zorder=0)
-    
+
     plt.tight_layout()
+    # re-stack the two legend rows after tight_layout has changed the axes height
+    for _ in range(3):
+        fig.canvas.draw()
+        row_h = legend_local.get_window_extent().transformed(ax.transAxes.inverted()).height
+        legend_code.set_bbox_to_anchor((0.5, 1.0 + row_h), transform=ax.transAxes)
+        plt.tight_layout()
     plt.savefig(output_filename, bbox_inches='tight', pad_inches=0.03)
     plt.show()
 
@@ -179,6 +192,8 @@ if __name__ == '__main__':
         "xtick.labelsize": 25,
         "ytick.labelsize": 25,
         "axes.titlesize": 28,
+        "pdf.fonttype": 42,
+        "ps.fonttype": 42,
     })
     p_local_list = [0.0001, 0.001, 0.005, 0.01] 
     p_transmission_list = [0.01, 0.02, 0.05, 0.1, 0.15, 0.2, 0.25]
@@ -189,12 +204,12 @@ if __name__ == '__main__':
     create_comparison_bar_chart(
         df=full_data_df, y_col='logical_error', y_label='Logical Error Rate',
         title='Logical Error Rate Comparison', output_filename=os.path.join(os.path.dirname(__file__), 'logical_error_rate_comparison.pdf'),
-        value_is_inverse=False
+        value_is_inverse=False, ylim=(1.138e-7, 0.2749)
     )
 
     # Create the Success Rate plot (inverse behavior)
     create_comparison_bar_chart(
-        df=full_data_df, y_col='success_rate', y_label='Success Rate',
+        df=full_data_df, y_col='success_rate', y_label='Acceptance Probability',
         title='Success Rate Comparison', output_filename=os.path.join(os.path.dirname(__file__), 'success_rate_comparison.pdf'),
-        value_is_inverse=True
+        value_is_inverse=True, ylim=(0, 0.9903)
     )
