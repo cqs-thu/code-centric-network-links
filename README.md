@@ -1,6 +1,10 @@
-# Quantum Link-Layer Protocol Simulation Code
+# Quantum Link-Layer Protocol Simulations
 
-This repository contains the simulation code accompanying our paper on **quantum link-layer protocols**, "A Code-Centric Design Space for Error Management over Quantum Network Links". It provides reference circuit implementations for multiple quantum codes, scripts to reproduce the experiments reported in the paper, and a hybrid error management framework that combines filtering and decoding strategies.
+This repository provides circuit-level simulations of error management over noisy quantum network links. It compares entanglement distillation, encoded-entanglement distribution, and direct transmission of encoded states. It also implements hybrid error management: filtering transmission attempts using syndrome information and decoding the accepted attempts.
+
+The code was developed by members of the [Research Center for Quantum Software](https://github.com/cqs-thu) at the Department of Computer Science and Technology, Tsinghua University. It includes quantum-code circuits, experiment and plotting scripts, and pretrained neural-network decoders.
+
+[Getting started](#getting-started) · [Experiments](#experiments-and-figures) · [Repository layout](#repository-layout) · [Contact](#contact)
 
 > **At a glance**
 >
@@ -11,28 +15,59 @@ This repository contains the simulation code accompanying our paper on **quantum
 
 ---
 
-## Figures of the paper
+## Getting started
 
-The repository contains code only. Each script caches its results in CSV files and computes only the points that are missing, so a second run only plots. Sample sizes are those used in the paper (appendix E). The data plotted in the paper are available from the authors upon reasonable request.
+Use Python 3.11 or 3.12. The pinned NumPy version requires Python 3.11 or newer.
+
+```bash
+git clone https://github.com/cqs-thu/code-centric-network-links.git
+cd code-centric-network-links
+python3.11 -m venv .venv
+source .venv/bin/activate
+python -m pip install -r requirements.txt
+```
+
+On Windows, create the environment with `py -3.11 -m venv .venv` and activate it with `.venv\Scripts\Activate.ps1` in PowerShell.
+
+If you use conda, create the environment with `conda create -n qlink python=3.11`, run `conda activate qlink`, and then install `requirements.txt` from the repository root.
+
+The hybrid experiments use PyTorch. For GPU support, follow the [PyTorch installation guide](https://pytorch.org/get-started/locally/) and select a CUDA build of the version pinned in `requirements.txt`. The finite-size scan and runtime benchmark launchers use Bash and expect a CUDA GPU for their NN workers.
+
+### Run a small example
+
+From the repository root:
+
+```bash
+cd hybrid-error-management
+python decoder_comparison_d3.py --quick
+```
+
+This compares unfiltered decoding with syndrome-weight and decoder-confidence filtering at code distance 3, using 2,000 calibration and evaluation shots per point. It saves CSV results and the plots `decoder_compare_PM.pdf` and `decoder_compare_NN.pdf` under `hybrid-error-management/smoke_test/fig6/`. The NN decoder uses a CUDA GPU when available and otherwise runs on the CPU. Omit `--quick` to run the full experiment.
+
+---
+
+## Experiments and figures
+
+The experiment scripts generate CSV results and PDF plots. The protocol comparisons and the hybrid decoder-comparison, distillation-comparison, and acceptance-sweep scripts reuse cached results and compute missing points when rerun. The finite-size scan and runtime benchmark have separate workflows described below. Generated results are not included in the repository.
 
 **Logical error rate.** For every protocol the reported logical error rate is the average of the Z-basis and X-basis failure probabilities (conditioned on acceptance). The protocol-comparison scripts compute both bases; the hybrid state-encoding circuits are symmetric under the exchange of the two bases (checked at d = 3, 5, 7, 9 with the MWPM-based filters), so the hybrid scripts simulate the Z basis.
 
 | Figure | Content | Script |
 |---|---|---|
-| 4 | ED, EE-T and SE with error correction | `three-protocols/experiments/error_correction_of_three_protocols/plot_column_chart.py` |
-| 5 | EE-T versus EE-NC | `three-protocols/experiments/EE-T_and_2G/compare_correction.py` |
-| 6 | Filters with the MWPM and NN decoders, d = 3 | `hybrid-error-management/decoder_comparison_d3.py` |
-| 7 | Hybrid error management versus three-layer distillation | `hybrid-error-management/compare_with_distillation.py` |
-| 8 | DS + NN over transmission error rate and target acceptance | `hybrid-error-management/near_term_smallcode.py` (sweep), `plot_3d_landscape_nn.py` (plot) |
-| 10 | Error detection with three codes | `three-protocols/experiments/error_detection_of_three_codes/plot_column_chart.py` |
-| 11 | Finite-size behavior, d = 5 to 11 | `hybrid-error-management/finite_size_scan/` |
-| 12 | Runtime of the filter-decoder pairs | `hybrid-error-management/runtime_benchmark/` |
+| 4 | ED, EE-T and SE with error correction | [plot_column_chart.py](three-protocols/experiments/error_correction_of_three_protocols/plot_column_chart.py) |
+| 5 | EE-T versus EE-NC | [compare_correction.py](three-protocols/experiments/EE-T_and_2G/compare_correction.py) |
+| 6 | Filters with the MWPM and NN decoders, d = 3 | [decoder_comparison_d3.py](hybrid-error-management/decoder_comparison_d3.py) |
+| 7 | Hybrid error management versus three-layer distillation | [compare_with_distillation.py](hybrid-error-management/compare_with_distillation.py) |
+| 8 | DS + NN over transmission error rate and target acceptance | [near_term_smallcode.py](hybrid-error-management/near_term_smallcode.py) (sweep), [plot_3d_landscape_nn.py](hybrid-error-management/plot_3d_landscape_nn.py) (plot) |
+| 10 | Error detection with three codes | [plot_column_chart.py](three-protocols/experiments/error_detection_of_three_codes/plot_column_chart.py) |
+| 11 | Finite-size behavior, d = 5 to 11 | [finite_size_scan/](hybrid-error-management/finite_size_scan/) |
+| 12 | Runtime of the filter-decoder pairs | [runtime_benchmark/](hybrid-error-management/runtime_benchmark/) |
 
 ---
 
 ## Repository layout
 
-```
+```text
 .
 ├── three-protocols/                         # Protocol comparison experiments
 │   ├── circuits/
@@ -70,30 +105,6 @@ The repository contains code only. Each script caches its results in CSV files a
 │
 └── requirements.txt                         # Python dependencies
 ```
-
----
-
-## Installation
-
-**Python version.** Python 3.10+ is recommended.
-
-```bash
-# 1) Create a clean environment (recommended)
-python -m venv .venv && source .venv/bin/activate  # (Windows: .venv\Scripts\activate)
-
-# 2) Install dependencies
-pip install -r requirements.txt
-```
-
-If you use conda:
-
-```bash
-conda create -n qlink python=3.10 -y
-conda activate qlink
-pip install -r requirements.txt
-```
-
-**Note on PyTorch.** The `hybrid-error-management` experiments require PyTorch. If you need GPU support, install the appropriate CUDA variant following the [PyTorch installation guide](https://pytorch.org/get-started/locally/) before running `pip install -r requirements.txt`.
 
 ---
 
@@ -200,10 +211,11 @@ Absolute times depend on the hardware; the paper used Intel Xeon Platinum 8358P 
 Scans over multiple code distances and transmission error rates with a fixed number of shots. It also provides the circuit and estimator construction used by `finite_size_scan/`.
 
 ```bash
-python threshold_scan.py --p-local 0.003 --d-list 3,5,7,9 --p-trans-grid 0.01,0.02,0.03,...,0.20
+python threshold_scan.py threshold-scan --p-local 0.003 --d-list 3,5,7,9 --p-trans-grid 0.01,0.02,0.03,0.05,0.07,0.10,0.15,0.20
 ```
 
 Key CLI arguments:
+
 * `--d-list` -- Code distances to sweep (default: `3,5,7,9`)
 * `--p-local` -- Fixed local error rate (required)
 * `--p-trans-grid` -- Transmission error rate grid
@@ -235,4 +247,4 @@ Key CLI arguments:
 
 ## Contact
 
-For questions and reproducibility issues, please open a GitHub issue or contact the authors.
+For questions or problems running the simulations, please [open an issue](https://github.com/cqs-thu/code-centric-network-links/issues). Include the command you ran, your Python and package versions, and any error output.
