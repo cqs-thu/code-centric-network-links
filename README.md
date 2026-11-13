@@ -1,17 +1,12 @@
-# Quantum Link-Layer Protocol Simulations
+# Quantum Link Protocol Simulations
 
 This repository provides circuit-level simulations of error management over noisy quantum network links. It compares entanglement distillation, encoded-entanglement distribution, and direct transmission of encoded states. It also implements hybrid error management: filtering transmission attempts using syndrome information and decoding the accepted attempts.
 
 The code was developed by members of the [Research Center for Quantum Software](https://github.com/cqs-thu) at the Department of Computer Science and Technology, Tsinghua University. It includes quantum-code circuits, experiment and plotting scripts, and pretrained neural-network decoders.
 
-[Getting started](#getting-started) · [Experiments](#experiments-and-figures) · [Repository layout](#repository-layout) · [Contact](#contact)
+This repository accompanies our paper, [A code-centric design space for error management over quantum network links](https://doi.org/10.1088/2058-9565/aebe5a), in *Quantum Science and Technology*. The paper describes the common coding structure of these protocols and evaluates hybrid error management. The simulation data and supporting measurements are included in [data/](data/).
 
-> **At a glance**
->
-> * **Codes implemented:** Surface code, Steane code, Repetition code
-> * **Protocols:** Entanglement distillation (ED), entanglement encoding with transmission (EE-T), entanglement encoding with non-local CNOT gates (EE-NC), state encoding (SE)
-> * **Hybrid error management:** Syndrome-weight filter (SW), logical-gap filter of the matching decoder (DS + MWPM), neural-network confidence filter (DS + NN)
-> * **Artifacts:** Logical-error calculators, experiment drivers, plotting scripts, pre-trained NN models
+[Getting started](#getting-started) · [Experiments](#experiments-and-figures) · [Repository layout](#repository-layout) · [Contact](#contact)
 
 ---
 
@@ -48,9 +43,9 @@ This compares unfiltered decoding with syndrome-weight and decoder-confidence fi
 
 ## Experiments and figures
 
-The experiment scripts generate CSV results and PDF plots. The protocol comparisons and the hybrid decoder-comparison, distillation-comparison, and acceptance-sweep scripts reuse cached results and compute missing points when rerun. The finite-size scan and runtime benchmark have separate workflows described below. Recorded results and supporting measurements are available in [data/](data/). The [data manifest](data/manifest.json) lists the datasets, parameters, column definitions, checksums, and cache locations used by the existing scripts.
+The experiment scripts generate CSV results and PDF plots. The protocol comparisons and the hybrid decoder-comparison, distillation-comparison, and acceptance-sweep scripts reuse cached results and compute missing points when rerun. The finite-size scan and runtime benchmark have separate workflows described below. The [data manifest](data/manifest.json) lists the recorded datasets, parameters, columns, checksums, and cache locations. To reuse a recorded CSV with an experiment script, copy it to the corresponding `cache_path` listed in the manifest.
 
-**Logical error rate.** For every protocol the reported logical error rate is the average of the Z-basis and X-basis failure probabilities (conditioned on acceptance). The protocol-comparison scripts compute both bases; the hybrid state-encoding circuits are symmetric under the exchange of the two bases (checked at d = 3, 5, 7, 9 with the MWPM-based filters), so the hybrid scripts simulate the Z basis.
+**Logical error rate.** For every protocol the reported logical error rate is the average of the Z-basis and X-basis failure probabilities (conditioned on acceptance). The protocol-comparison scripts compute both bases. The hybrid scripts simulate the Z basis, supported by X/Z-basis comparisons at d = 3, 5, 7, 9 with MWPM decoding and the SW and DS filters.
 
 | Figure | Content | Script |
 |---|---|---|
@@ -69,64 +64,27 @@ The experiment scripts generate CSV results and PDF plots. The protocol comparis
 
 ```text
 .
-├── three-protocols/                         # Protocol comparison experiments
-│   ├── circuits/
-│   │   ├── DEJMPS.py                        # Entanglement distillation (DEJMPS) circuits
-│   │   ├── steane.py                        # Steane [[7,1,3]] code circuits
-│   │   └── surface.py                       # Surface code circuits
-│   ├── cals/
-│   │   └── cal_logical_error.py             # Logical error estimation utilities
-│   └── experiments/
-│       ├── error_correction_of_three_protocols/
-│       │   └── plot_column_chart.py         # ED, EE-T and SE under error correction (figure 4)
-│       ├── EE-T_and_2G/
-│       │   └── compare_correction.py        # EE-T versus EE-NC under error correction (figure 5)
-│       └── error_detection_of_three_codes/
-│           └── plot_column_chart.py         # Repetition, surface and Steane codes under error detection (figure 10)
-│
-├── hybrid-error-management/                 # Hybrid filtering + decoding experiments
-│   ├── Model/
-│   │   ├── model.py                         # Transformer-based NN architecture
-│   │   └── model_d_{3,5,7,9,11}.pt          # Pre-trained model weights
-│   ├── surface.py                           # Surface code state encoding with parameterized noise
-│   ├── estimator_weight.py                  # SW filter + PM decoder
-│   ├── estimator_z.py                       # DS filter + PM decoder
-│   ├── estimator_NN.py                      # DS filter + NN decoder
-│   ├── estimator_swNN.py                    # SW filter + NN decoder
-│   ├── near_term_smallcode.py               # Small code (d=3) sweep over local error, transmission error and acceptance
-│   ├── decoder_comparison_d3.py             # Filters with the MWPM and NN decoders at d=3 (figure 6)
-│   ├── compare_with_distillation.py         # Hybrid filters versus three-layer distillation (figure 7)
-│   ├── plot_3d_landscape_nn.py              # 3D plot of DS + NN (figure 8)
-│   ├── threshold_scan.py                    # Threshold scan across multiple code distances
-│   ├── finite_size_scan/                    # Finite-size scan with at least 100 failures per point (figure 11)
-│   ├── runtime_benchmark/                   # Runtime benchmark of the filter-decoder pairs (figure 12)
-│   ├── plot_3d_landscape.py                 # 3D landscape visualization (all filters)
-│   └── plot_running_time.py                 # Quick runtime estimate
-│
-└── requirements.txt                         # Python dependencies
+├── three-protocols/
+│   ├── circuits/                 # Repetition, Steane and surface code circuits
+│   ├── cals/                     # Logical error estimation
+│   └── experiments/              # Protocol comparisons
+├── hybrid-error-management/
+│   ├── Model/                    # Neural decoder architecture and weights
+│   ├── finite_size_scan/
+│   └── runtime_benchmark/
+├── data/                         # Simulation results and supporting measurements
+└── requirements.txt
 ```
 
 ---
 
 ## Part 1: Three Protocols (`three-protocols/`)
 
-This folder compares quantum link-layer protocols across different codes.
+The protocol comparisons evaluate entanglement distillation (ED), entanglement encoding with transmission (EE-T), entanglement encoding with non-local CNOT gates (EE-NC), and state encoding (SE). They use repetition codes, the Steane [[7,1,3]] code, and the rotated surface [[9,1,3]] code.
 
-### Circuits (`circuits/`)
+`cals/cal_logical_error.py` estimates logical error rates under different protocol and noise settings. It uses PyMatching (MWPM) for the surface code and exact maximum-likelihood lookup-table decoding for the Steane code. Every surface code and Steane code circuit takes `basis='Z'` (input |0>, Z readout, or the Z_L Z_L parity of a Bell pair) or `basis='X'` (input |+>, X readout, or the X_L X_L parity); the final data readout is noiseless in both.
 
-* **`surface.py`** -- Surface code circuits, including logical state preparation and stabilizer measurement.
-* **`steane.py`** -- Steane [[7,1,3]] code circuits.
-* **`DEJMPS.py`** -- Entanglement distillation primitives (DEJMPS protocol).
-
-### Logical error calculators (`cals/`)
-
-* **`cal_logical_error.py`** -- Estimates logical error rates under different protocol and noise settings. Supports PyMatching (MWPM) for the surface code and a lookup-table decoder for the Steane code (for each syndrome, the more probable logical outcome under the circuit's detector error model, i.e. exact maximum-likelihood decoding). Every surface code and Steane code circuit takes `basis='Z'` (input |0>, Z readout, or the Z_L Z_L parity of a Bell pair) or `basis='X'` (input |+>, X readout, or the X_L X_L parity); the final data readout is noiseless in both. In error detection, a run is accepted only if Alice's and Bob's outcomes agree in all syndrome comparisons performed by the protocol; accepted runs are then decoded with the decoder of the error-correction experiments.
-
-### Experiments (`experiments/`)
-
-* **`error_correction_of_three_protocols/`** -- ED, EE-T and SE under error correction (figure 4). Every surface code protocol has one syndrome-measurement round after transmission.
-* **`EE-T_and_2G/`** -- EE-T versus EE-NC under error correction (figure 5).
-* **`error_detection_of_three_codes/`** -- Repetition, surface and Steane codes under error detection (figure 10). The Steane code circuit compares both X- and Z-type checks.
+Every surface code protocol has one syndrome-measurement round after transmission. In error detection, a run is accepted only if Alice's and Bob's outcomes agree in all syndrome comparisons performed by the protocol; accepted runs are then decoded with the decoder of the error-correction experiments. The Steane code circuit compares both X- and Z-type checks.
 
 **Usage.** Navigate to the relevant experiment folder and run the Python script. Results are cached in `results/`, and only missing points are computed; the figures are saved as PDF files in the experiment folder.
 
@@ -134,9 +92,7 @@ This folder compares quantum link-layer protocols across different codes.
 
 ## Part 2: Hybrid Error Management (`hybrid-error-management/`)
 
-This folder implements and evaluates hybrid error management strategies that combine a **filter** (to discard high-risk shots) with a **decoder** (to correct remaining errors).
-
-### Filter / estimator modules
+The filter and decoder combinations are implemented in the following modules. SW uses the syndrome weight, while DS uses the decoder's confidence in its prediction.
 
 | Module | Method | Description |
 |---|---|---|
@@ -145,10 +101,7 @@ This folder implements and evaluates hybrid error management strategies that com
 | `estimator_NN.py` | DS + NN | Uses a pre-trained transformer model to predict logical error probability. Can serve as both filter and decoder. |
 | `estimator_swNN.py` | SW + NN | Applies syndrome-weight filtering first, then decodes accepted shots with the NN. |
 
-### Neural network model (`Model/`)
-
-* **`model.py`** -- Transformer-based architecture with convolutional embedding, multi-head self-attention, and dilated 2D convolutions. Input shape: `(B, 3, d+1, d+1)`.
-* **`model_d_{3,5,7,9,11}.pt`** -- Pre-trained weights for code distances 3 through 11.
+The neural decoder in `Model/model.py` uses convolutional embedding, multi-head self-attention, and dilated 2D convolutions, with input shape `(B, 3, d+1, d+1)`. Pretrained weights are provided in `Model/model_d_{3,5,7,9,11}.pt`.
 
 ### Experiment scripts
 
@@ -229,18 +182,9 @@ Key CLI arguments:
 
 ---
 
-## Reproducibility checklist
-
-1. Install dependencies from `requirements.txt` in a clean environment.
-2. Use the code on the `main` branch, which corresponds to the revised paper; the code of the submitted version is in the commit history.
-3. For `three-protocols`: navigate to each experiment subfolder and run its script.
-4. For `hybrid-error-management`: run each experiment script as described above. Results are cached in CSV files for incremental computation.
-
----
-
 ## Version history
 
-* **v2.0** (revised paper) -- Scripts for every numerical figure of the paper. Logical error rates averaged over the Z and X bases (X-basis versions of all protocol-comparison circuits); exact maximum-likelihood decoding for the Steane code; distillation baseline with noiseless parity readout. Break-even line of figures 6 and 8 at 2 p_trans / 3, the probability that transmission flips the readout of an unencoded qubit prepared in |0> or |+> and read out in the same basis. One syndrome-measurement round after transmission for every surface code protocol. X- and Z-type checks and the acceptance rule of the paper in the error-detection experiment. Array shapes in the unfiltered-MWPM evaluation of `near_term_smallcode.py`. Import in `estimator_NN.py`. SciPy added to the requirements.
+* **v2.0** -- Code for the revised paper, with scripts for every numerical figure.
 * **v1.0** -- Code of the submitted version.
 
 ---
