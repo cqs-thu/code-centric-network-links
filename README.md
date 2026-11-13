@@ -179,16 +179,3 @@ Key CLI arguments:
 #### `plot_3d_landscape.py` and `plot_running_time.py`
 
 `plot_3d_landscape.py` draws 3D landscapes of all filters from the caches of `near_term_smallcode.py`; `plot_running_time.py` gives a quick runtime estimate. Figures 8 and 12 of the paper are produced by `plot_3d_landscape_nn.py` and `runtime_benchmark/`.
-
----
-
-## Version history
-
-* **v2.0** -- Code for the revised paper, with scripts for every numerical figure.
-* **v1.0** -- Code of the submitted version.
-
----
-
-## Contact
-
-For questions or problems running the simulations, please [open an issue](https://github.com/cqs-thu/code-centric-network-links/issues). Include the command you ran, your Python and package versions, and any error output.
