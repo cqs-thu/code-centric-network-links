@@ -1,0 +1,11 @@
+decoder,method,p_trans,ler,accept
+NN,unfiltered,0.025,0.058116,1.0
+NN,unfiltered,0.05,0.0803575,1.0
+NN,unfiltered,0.075,0.1046255,1.0
+NN,unfiltered,0.1,0.130887,1.0
+NN,unfiltered,0.125,0.1591675,1.0
+NN,unfiltered,0.15,0.18749,1.0
+NN,unfiltered,0.175,0.2159764999999999,1.0
+NN,unfiltered,0.2,0.2446134999999999,1.0
+NN,unfiltered,0.225,0.2716355,1.0
+NN,unfiltered,0.25,0.2990035,1.0

@@ -1,0 +1,3012 @@
+{
+  "schema_version": 1,
+  "description": "Recorded numerical results, calibration scores, evaluation counts, timing measurements and circuit resource counts.",
+  "formats": {
+    "csv": "UTF-8 with a header row; blank fields are missing or inapplicable values.",
+    "npz": "Compressed NumPy arrays; load with allow_pickle=False."
+  },
+  "paths": "File paths are relative to data/. Optional cache_path values are relative to the repository root and identify locations used by the existing experiment scripts.",
+  "metrics": {
+    "error_rates": "Probabilities in [0, 1]. Protocol-comparison results use the arithmetic mean of Z- and X-basis logical failure probabilities. Hybrid results use the Z-basis simulation.",
+    "acceptance": "Fraction of attempted trials retained by the protocol or filter. target_accept specifies the requested fraction; achieved_accept and cal_accept specify measured fractions.",
+    "conditional_error": "Logical failures divided by accepted trials, except where results are explicitly averaged over independent repetitions or bases.",
+    "shots": "Number of simulated trials; see the Steane detection note for the initial-shot field.",
+    "timing": "T_filter_ns and T_decode_ns are nanoseconds. t_round_us and t_round_us_mean are microseconds. seconds and sec_* fields are seconds."
+  },
+  "datasets": [
+    {
+      "directory": "figure04",
+      "description": "Error correction with ED, EE-T and SE for Steane and surface codes.",
+      "p_local": [
+        0,
+        0.0005,
+        0.001,
+        0.002
+      ],
+      "p_trans": [
+        0.005,
+        0.025,
+        0.045,
+        0.065,
+        0.085,
+        0.105,
+        0.125,
+        0.145
+      ],
+      "protocol_labels": {
+        "distillation": "ED",
+        "encoding": "EE-T",
+        "qecc": "SE"
+      },
+      "plotted_points": 192
+    },
+    {
+      "directory": "figure05",
+      "description": "EE-T and EE-NC error correction for Steane and surface codes.",
+      "p_local": [
+        0,
+        0.0005,
+        0.001,
+        0.002
+      ],
+      "p_trans": [
+        0.005,
+        0.025,
+        0.045,
+        0.065,
+        0.085,
+        0.105,
+        0.125,
+        0.145
+      ],
+      "columns": {
+        "encoding": "EE-T logical error probability",
+        "protocol_2g": "EE-NC logical error probability"
+      },
+      "plotted_points": 128
+    },
+    {
+      "directory": "figure06",
+      "description": "SW and DS filtering with MWPM and NN decoding, and unfiltered decoding.",
+      "d": 3,
+      "p_local": 0.01,
+      "p_trans": [
+        0.02,
+        0.05,
+        0.1,
+        0.15,
+        0.2,
+        0.25
+      ],
+      "target_accept": 0.5,
+      "shots_cal": 150000,
+      "shots_eval": 150000,
+      "plotted_points": 36,
+      "notes": [
+        "The meta column contains JSON with shot counts and thresholds where recorded. accept is the measured acceptance fraction.",
+        "pure_mwpm_d3_plocal0.01.csv records the unfiltered MWPM results. Unfiltered NN results are included in the NN table."
+      ],
+      "nn_calibration_score_cap": 30000
+    },
+    {
+      "directory": "figure07",
+      "description": "Hybrid filtering and three-layer distillation at a common target acceptance.",
+      "d": 3,
+      "p_local": [
+        0.005,
+        0.01
+      ],
+      "plotted_p_trans": [
+        0.02,
+        0.05,
+        0.1,
+        0.15,
+        0.2,
+        0.25
+      ],
+      "hybrid_shots_cal": 250000,
+      "hybrid_shots_eval": 250000,
+      "distillation_shots": 10000000,
+      "plotted_points": 48,
+      "notes": [
+        "distill_logical_error is (distill_zz + distill_xx) / 2, with noiseless final readout.",
+        "In the hybrid tables, accept is the requested distillation acceptance; meta.accept_emp is the measured hybrid acceptance.",
+        "The hybrid tables also retain six records at p_trans = 0.01, outside the plotted range."
+      ]
+    },
+    {
+      "directory": "figure08",
+      "description": "NN decoding over transmission error rates and target acceptance probabilities.",
+      "d": 3,
+      "p_local": [
+        0.001,
+        0.005,
+        0.01
+      ],
+      "p_trans": [
+        0.025,
+        0.05,
+        0.075,
+        0.1,
+        0.125,
+        0.15,
+        0.175,
+        0.2,
+        0.225,
+        0.25
+      ],
+      "target_accept": [
+        0.2,
+        0.5,
+        0.8,
+        1.0
+      ],
+      "shots_cal": 100000,
+      "evaluation_repetitions": 2,
+      "shots_eval_per_repetition": 1000000,
+      "plotted_points": 120,
+      "notes": [
+        "The local error rate and target acceptance are encoded in each filename. accept is the measured acceptance.",
+        "The plot uses DS+<target> and unfiltered rows; the original tables also retain SW+<target> rows.",
+        "ler and accept are arithmetic means over two evaluation repetitions."
+      ]
+    },
+    {
+      "directory": "figure10",
+      "description": "Error detection with repetition, Steane and surface codes.",
+      "p_local": [
+        0.0001,
+        0.001,
+        0.005,
+        0.01
+      ],
+      "p_trans": [
+        0.01,
+        0.02,
+        0.05,
+        0.1,
+        0.15,
+        0.2,
+        0.25
+      ],
+      "parameter_points": 84,
+      "notes": [
+        "The distill_success_rate and distill_logical_error column names are shared by all three code caches.",
+        "distillation_basis_avg_cache.csv is the repetition-code baseline.",
+        "The surface and repetition per_basis tables retain the separate basis estimates and available counts. Steane basis results are in protocol_comparison/steane_per_basis.csv.",
+        "The Steane cache records Z-basis acceptance and the mean of the two basis error rates; the per-basis table preserves both acceptance estimates."
+      ]
+    },
+    {
+      "directory": "figure11",
+      "description": "Finite-size results, raw calibration scores and evaluation counts for three filters.",
+      "d": [
+        5,
+        7,
+        9,
+        11
+      ],
+      "p_local": 0.003,
+      "p_trans": [
+        0.08,
+        0.1,
+        0.12,
+        0.14,
+        0.16,
+        0.18,
+        0.2
+      ],
+      "target_accept": [
+        0.1,
+        0.2,
+        0.4,
+        0.8
+      ],
+      "shots_cal": 262144,
+      "shots_per_chunk": 320000,
+      "minimum_chunks": 4,
+      "maximum_shots": 400000000,
+      "target_failures": 100,
+      "plotted_points": 336,
+      "calibration_arrays": 84,
+      "evaluation_chunks": 8929,
+      "included_evaluation_chunks": 8886,
+      "estimator_labels": {
+        "SyndromeWeight": "SW + MWPM",
+        "ZCosetGap": "DS + MWPM",
+        "NNFilter": "DS + NN"
+      },
+      "acceptance_rules": {
+        "SyndromeWeight": "score <= tau",
+        "ZCosetGap": "abs(score) >= tau",
+        "NNFilter": "score >= tau"
+      },
+      "notes": [
+        "fig11_all_points.csv contains all results; threshold_scan_*.csv partitions those same rows by filter and target acceptance.",
+        "Each calibration array is shared by four targets. calibration.csv records full-precision thresholds; the result tables retain their original 10-significant-digit formatting.",
+        "Four target rows share each evaluation chunk. Count shots once per (estimator, d, p_trans, chunk).",
+        "Use only included_in_aggregate=True rows to reproduce the final results. Chunks after the sequential stopping point are retained with this field set to False.",
+        "Stop at the first prefix of at least four chunks where every target has at least 100 failures, or at 1,250 chunks. Five aggregate points reached the cap with fewer than 100 failures.",
+        "condL = failures / accepted; ci95_lo and ci95_hi are two-sided 95% Clopper-Pearson intervals."
+      ]
+    },
+    {
+      "directory": "figure12",
+      "description": "Filter and decoder runtime measurements, thresholds and machine configuration.",
+      "d": [
+        5,
+        7,
+        9,
+        11
+      ],
+      "p_local": 0.003,
+      "p_trans": [
+        0.08,
+        0.12,
+        0.16,
+        0.2
+      ],
+      "target_accept": 0.2,
+      "plotted_mode": "batch500",
+      "plotted_points": 64,
+      "notes": [
+        "runtime_plotted_values.csv contains the 64 plotted bars. runtime_results_regen.csv contains summary statistics; runtime_reps_regen.csv retains individual repeated measurements.",
+        "For each repetition, t_round_us = T_filter_ns / rounds / 1000 + T_decode_ns / max(1, accepted) / 1000. The plotted values are the arithmetic mean and sample standard deviation of this quantity.",
+        "Each plotted repetition attempts 500 rounds. There are 20 repetitions per point, or five for NN on one CPU core.",
+        "The original tables also retain auxiliary batch1 measurements; single-repetition groups have no sample standard deviation.",
+        "thresholds_regen.csv records calibration counts and thresholds. environment_regen.csv records the hardware, software and timing-quality criteria.",
+        "valid preserves the original timing-quality flag. The plotted table retains the recorded values, including rows with valid=False."
+      ]
+    },
+    {
+      "directory": "protocol_comparison",
+      "description": "Basis-specific source data shared by the protocol comparisons.",
+      "figures": [
+        4,
+        5,
+        10
+      ],
+      "notes": [
+        "surface_correction_per_basis.csv retains shot counts, failures, standard errors and seeds for both bases and four protocols.",
+        "surface_exact_plocal0.csv records exact enumeration with noise-free local operations.",
+        "steane_per_basis.csv uses exact maximum-likelihood decoding. kind=corr supplies Figures 4 and 5; kind=det supplies Figure 10.",
+        "For Steane correction, shots is the simulated count. For Steane detection, shots is the initial requested count; adaptive sampling can increase the actual number of trials, which this source table does not record."
+      ]
+    },
+    {
+      "directory": "table04",
+      "description": "Circuit resource counts for nine protocol and code combinations.",
+      "notes": [
+        "single_qubit_gates includes measurement and reset operations.",
+        "local_noise_locations and transmission_noise_locations count applications of the corresponding noise channels."
+      ]
+    },
+    {
+      "directory": "hybrid_basis_comparison",
+      "description": "X- and Z-basis comparisons for unfiltered MWPM, SW + MWPM and DS + MWPM.",
+      "d": [
+        3,
+        5,
+        7,
+        9
+      ],
+      "notes": [
+        "The d3 tables use p_local in {0.005, 0.01} and p_trans in {0.02, 0.05, 0.10, 0.15, 0.20, 0.25}; targets are the distillation acceptance probabilities.",
+        "d3_per_basis.csv retains sampled counts, thresholds, seeds and intervals. d3_exact.csv records exact probabilities; d3_comparison.csv pairs the two bases.",
+        "d5_d7_d9_comparison.csv uses p_local = 0.003 and p_trans in {0.08, 0.14, 0.20}; filtered targets are 0.1 and 0.8. The table records separate basis counts and comparisons at calibrated thresholds and matched acceptance.",
+        "These are independent basis-comparison runs supporting the simulation setup; the main hybrid curves are stored in their figure directories."
+      ]
+    }
+  ],
+  "files": [
+    {
+      "path": "figure04/data_all.csv",
+      "bytes": 8835,
+      "sha256": "b56d049c41d7114b1f26a94d8fec30d38d031573b86c645b9c11a472c038be10",
+      "columns": [
+        "code_type",
+        "p_local",
+        "p_transmit",
+        "protocol",
+        "logical_error"
+      ],
+      "rows": 192,
+      "source_filename": "data_all.csv",
+      "source_sha256": "b56d049c41d7114b1f26a94d8fec30d38d031573b86c645b9c11a472c038be10",
+      "cache_path": "three-protocols/experiments/error_correction_of_three_protocols/results/data_all.csv"
+    },
+    {
+      "path": "figure05/steane_comparison_cache.csv",
+      "bytes": 1214,
+      "sha256": "cf0c72fa90daacb570921e88f59ad0e666d1173fa3bebb147aede52745aa62c3",
+      "columns": [
+        "p_local",
+        "p_transmission",
+        "encoding",
+        "protocol_2g"
+      ],
+      "rows": 32,
+      "source_filename": "steane_comparison_cache.csv",
+      "source_sha256": "cf0c72fa90daacb570921e88f59ad0e666d1173fa3bebb147aede52745aa62c3",
+      "cache_path": "three-protocols/experiments/EE-T_and_2G/results/steane_comparison_cache.csv"
+    },
+    {
+      "path": "figure05/surface_comparison_cache.csv",
+      "bytes": 1273,
+      "sha256": "6bce6e25181925bbe0d960ea9d1972da99283e5c448e60c2b65495b0829d0feb",
+      "columns": [
+        "p_local",
+        "p_transmission",
+        "encoding",
+        "protocol_2g"
+      ],
+      "rows": 32,
+      "source_filename": "surface_comparison_cache.csv",
+      "source_sha256": "6bce6e25181925bbe0d960ea9d1972da99283e5c448e60c2b65495b0829d0feb",
+      "cache_path": "three-protocols/experiments/EE-T_and_2G/results/surface_comparison_cache.csv"
+    },
+    {
+      "path": "figure06/near_term_nn_d3_plocal_0.010.csv",
+      "bytes": 2443,
+      "sha256": "754b6c90a8c628b5e371c29fcfba5bbd5190dc40861df9ce2689cfbf42b0432d",
+      "columns": [
+        "decoder",
+        "method",
+        "p_local",
+        "p_trans",
+        "ler",
+        "accept",
+        "meta"
+      ],
+      "rows": 18,
+      "source_filename": "near_term_nn_d3_plocal_0.010.csv",
+      "source_sha256": "754b6c90a8c628b5e371c29fcfba5bbd5190dc40861df9ce2689cfbf42b0432d",
+      "cache_path": "hybrid-error-management/cache_decoder_comparison/near_term_nn_d3_plocal_0.010.csv"
+    },
+    {
+      "path": "figure06/near_term_pymatching_d3_plocal_0.010.csv",
+      "bytes": 1596,
+      "sha256": "010eb01710a936061efe8c4367a8b2f60ac7e93cd29de2cb9d42a730833f10ac",
+      "columns": [
+        "decoder",
+        "method",
+        "p_local",
+        "p_trans",
+        "ler",
+        "accept",
+        "meta"
+      ],
+      "rows": 12,
+      "source_filename": "near_term_pymatching_d3_plocal_0.010.csv",
+      "source_sha256": "010eb01710a936061efe8c4367a8b2f60ac7e93cd29de2cb9d42a730833f10ac",
+      "cache_path": "hybrid-error-management/cache_decoder_comparison/near_term_pymatching_d3_plocal_0.010.csv"
+    },
+    {
+      "path": "figure06/pure_mwpm_d3_plocal0.01.csv",
+      "bytes": 260,
+      "sha256": "7d9a20bf85cfca50a78e2a07d67ac8d596cf1754f965bf4b7033258f317f5dc6",
+      "columns": [
+        "p_trans",
+        "ler",
+        "stderr"
+      ],
+      "rows": 6,
+      "source_filename": "pure_mwpm_d3_plocal0.01.csv",
+      "source_sha256": "7d9a20bf85cfca50a78e2a07d67ac8d596cf1754f965bf4b7033258f317f5dc6",
+      "cache_path": "hybrid-error-management/cache_decoder_comparison/pure_mwpm_d3_plocal0.01.csv"
+    },
+    {
+      "path": "figure07/distillation_basis_avg_cache.csv",
+      "bytes": 1004,
+      "sha256": "96b27cd3f13d4faf9978f901c3e3b3d37f6d493580e2d040fa48cd9e2d2e0e37",
+      "columns": [
+        "p_local",
+        "p_transmission",
+        "distill_success_rate",
+        "distill_zz",
+        "distill_xx",
+        "distill_logical_error"
+      ],
+      "rows": 12,
+      "source_filename": "distillation_basis_avg_cache.csv",
+      "source_sha256": "96b27cd3f13d4faf9978f901c3e3b3d37f6d493580e2d040fa48cd9e2d2e0e37",
+      "cache_path": "hybrid-error-management/cache_distill_compare/distillation_basis_avg_cache.csv"
+    },
+    {
+      "path": "figure07/hybrid_vs_distill_d3_plocal_0.005.csv",
+      "bytes": 3232,
+      "sha256": "7a718c740d5cba524028437163b0c3ad4ca42784479f2b6563c6b92b80bb1c90",
+      "columns": [
+        "method",
+        "p_local",
+        "p_trans",
+        "accept",
+        "ler",
+        "meta"
+      ],
+      "rows": 21,
+      "source_filename": "hybrid_vs_distill_d3_plocal_0.005.csv",
+      "source_sha256": "7a718c740d5cba524028437163b0c3ad4ca42784479f2b6563c6b92b80bb1c90",
+      "cache_path": "hybrid-error-management/cache_distill_compare/hybrid_vs_distill_d3_plocal_0.005.csv"
+    },
+    {
+      "path": "figure07/hybrid_vs_distill_d3_plocal_0.010.csv",
+      "bytes": 3203,
+      "sha256": "5e4987c9702c795f10a2a88b8c5c805d24734d02afc646520144836e2f9cca34",
+      "columns": [
+        "method",
+        "p_local",
+        "p_trans",
+        "accept",
+        "ler",
+        "meta"
+      ],
+      "rows": 21,
+      "source_filename": "hybrid_vs_distill_d3_plocal_0.010.csv",
+      "source_sha256": "5e4987c9702c795f10a2a88b8c5c805d24734d02afc646520144836e2f9cca34",
+      "cache_path": "hybrid-error-management/cache_distill_compare/hybrid_vs_distill_d3_plocal_0.010.csv"
+    },
+    {
+      "path": "figure08/NN_d3_plocal0.001_accept0.2.csv",
+      "bytes": 962,
+      "sha256": "38d94e237096a596aa1ee1beebacd483c4e10fdeacbbda0732ed484cdaf03257",
+      "columns": [
+        "decoder",
+        "method",
+        "p_trans",
+        "ler",
+        "accept"
+      ],
+      "rows": 20,
+      "source_filename": "NN_d3_plocal0.001_accept0.2.csv",
+      "source_sha256": "38d94e237096a596aa1ee1beebacd483c4e10fdeacbbda0732ed484cdaf03257",
+      "cache_path": "hybrid-error-management/cache_nearterm/NN_d3_plocal0.001_accept0.2.csv"
+    },
+    {
+      "path": "figure08/NN_d3_plocal0.001_accept0.5.csv",
+      "bytes": 993,
+      "sha256": "bbe2a8ac464033421fa088d1d99b233dc6357e75e2312aee08a0ac3e5de9414a",
+      "columns": [
+        "decoder",
+        "method",
+        "p_trans",
+        "ler",
+        "accept"
+      ],
+      "rows": 20,
+      "source_filename": "NN_d3_plocal0.001_accept0.5.csv",
+      "source_sha256": "bbe2a8ac464033421fa088d1d99b233dc6357e75e2312aee08a0ac3e5de9414a",
+      "cache_path": "hybrid-error-management/cache_nearterm/NN_d3_plocal0.001_accept0.5.csv"
+    },
+    {
+      "path": "figure08/NN_d3_plocal0.001_accept0.8.csv",
+      "bytes": 1062,
+      "sha256": "31ec5eace16a51938facca9191d9bc70bbff0cddb11a5ea10d85639efa38c55b",
+      "columns": [
+        "decoder",
+        "method",
+        "p_trans",
+        "ler",
+        "accept"
+      ],
+      "rows": 20,
+      "source_filename": "NN_d3_plocal0.001_accept0.8.csv",
+      "source_sha256": "31ec5eace16a51938facca9191d9bc70bbff0cddb11a5ea10d85639efa38c55b",
+      "cache_path": "hybrid-error-management/cache_nearterm/NN_d3_plocal0.001_accept0.8.csv"
+    },
+    {
+      "path": "figure08/NN_d3_plocal0.001_pure.csv",
+      "bytes": 388,
+      "sha256": "fe044ea7adf332aeb5a46b97bb710f4e74131ee6dba8841099878a756ad47717",
+      "columns": [
+        "decoder",
+        "method",
+        "p_trans",
+        "ler",
+        "accept"
+      ],
+      "rows": 10,
+      "source_filename": "NN_d3_plocal0.001_pure.csv",
+      "source_sha256": "fe044ea7adf332aeb5a46b97bb710f4e74131ee6dba8841099878a756ad47717",
+      "cache_path": "hybrid-error-management/cache_nearterm/NN_d3_plocal0.001_pure.csv"
+    },
+    {
+      "path": "figure08/NN_d3_plocal0.005_accept0.2.csv",
+      "bytes": 1003,
+      "sha256": "56e98abc785d4c9eb6331d9ac6badfab8b40de1638198815a2a95f44a2132380",
+      "columns": [
+        "decoder",
+        "method",
+        "p_trans",
+        "ler",
+        "accept"
+      ],
+      "rows": 20,
+      "source_filename": "NN_d3_plocal0.005_accept0.2.csv",
+      "source_sha256": "56e98abc785d4c9eb6331d9ac6badfab8b40de1638198815a2a95f44a2132380",
+      "cache_path": "hybrid-error-management/cache_nearterm/NN_d3_plocal0.005_accept0.2.csv"
+    },
+    {
+      "path": "figure08/NN_d3_plocal0.005_accept0.5.csv",
+      "bytes": 1006,
+      "sha256": "4a96f75af05c529a92f75052158985e796ef4d5d326a9f27e6a29b9dcbf5a148",
+      "columns": [
+        "decoder",
+        "method",
+        "p_trans",
+        "ler",
+        "accept"
+      ],
+      "rows": 20,
+      "source_filename": "NN_d3_plocal0.005_accept0.5.csv",
+      "source_sha256": "4a96f75af05c529a92f75052158985e796ef4d5d326a9f27e6a29b9dcbf5a148",
+      "cache_path": "hybrid-error-management/cache_nearterm/NN_d3_plocal0.005_accept0.5.csv"
+    },
+    {
+      "path": "figure08/NN_d3_plocal0.005_accept0.8.csv",
+      "bytes": 1029,
+      "sha256": "d7983be0a0a6352315258107391834fdc58bd76339aa70d8fcb940821ccf4fbc",
+      "columns": [
+        "decoder",
+        "method",
+        "p_trans",
+        "ler",
+        "accept"
+      ],
+      "rows": 20,
+      "source_filename": "NN_d3_plocal0.005_accept0.8.csv",
+      "source_sha256": "d7983be0a0a6352315258107391834fdc58bd76339aa70d8fcb940821ccf4fbc",
+      "cache_path": "hybrid-error-management/cache_nearterm/NN_d3_plocal0.005_accept0.8.csv"
+    },
+    {
+      "path": "figure08/NN_d3_plocal0.005_pure.csv",
+      "bytes": 399,
+      "sha256": "c9086badcab4b42e2be9fe2b932d340ad368e37f541ab67fe8845a4dee844548",
+      "columns": [
+        "decoder",
+        "method",
+        "p_trans",
+        "ler",
+        "accept"
+      ],
+      "rows": 10,
+      "source_filename": "NN_d3_plocal0.005_pure.csv",
+      "source_sha256": "c9086badcab4b42e2be9fe2b932d340ad368e37f541ab67fe8845a4dee844548",
+      "cache_path": "hybrid-error-management/cache_nearterm/NN_d3_plocal0.005_pure.csv"
+    },
+    {
+      "path": "figure08/NN_d3_plocal0.01_accept0.2.csv",
+      "bytes": 1002,
+      "sha256": "f3702922e98f1bbf62555c32c6fab1b0834406dd7bfd623ae776656968d72b25",
+      "columns": [
+        "decoder",
+        "method",
+        "p_trans",
+        "ler",
+        "accept"
+      ],
+      "rows": 20,
+      "source_filename": "NN_d3_plocal0.01_accept0.2.csv",
+      "source_sha256": "f3702922e98f1bbf62555c32c6fab1b0834406dd7bfd623ae776656968d72b25",
+      "cache_path": "hybrid-error-management/cache_nearterm/NN_d3_plocal0.01_accept0.2.csv"
+    },
+    {
+      "path": "figure08/NN_d3_plocal0.01_accept0.5.csv",
+      "bytes": 955,
+      "sha256": "004f9b99ce3983367f135190aeb8bbc017eb6cf8a3523943d82d4a56a8d5acf7",
+      "columns": [
+        "decoder",
+        "method",
+        "p_trans",
+        "ler",
+        "accept"
+      ],
+      "rows": 20,
+      "source_filename": "NN_d3_plocal0.01_accept0.5.csv",
+      "source_sha256": "004f9b99ce3983367f135190aeb8bbc017eb6cf8a3523943d82d4a56a8d5acf7",
+      "cache_path": "hybrid-error-management/cache_nearterm/NN_d3_plocal0.01_accept0.5.csv"
+    },
+    {
+      "path": "figure08/NN_d3_plocal0.01_accept0.8.csv",
+      "bytes": 1016,
+      "sha256": "460d974f7a09ec51f123e428a6b7e61b23966732f227fd65eef0b8a1cac23a1f",
+      "columns": [
+        "decoder",
+        "method",
+        "p_trans",
+        "ler",
+        "accept"
+      ],
+      "rows": 20,
+      "source_filename": "NN_d3_plocal0.01_accept0.8.csv",
+      "source_sha256": "460d974f7a09ec51f123e428a6b7e61b23966732f227fd65eef0b8a1cac23a1f",
+      "cache_path": "hybrid-error-management/cache_nearterm/NN_d3_plocal0.01_accept0.8.csv"
+    },
+    {
+      "path": "figure08/NN_d3_plocal0.01_pure.csv",
+      "bytes": 381,
+      "sha256": "71b4c95e2b502fd5206c6844b150c090d1280f2bbbb82f9f8a681d721d7fff23",
+      "columns": [
+        "decoder",
+        "method",
+        "p_trans",
+        "ler",
+        "accept"
+      ],
+      "rows": 10,
+      "source_filename": "NN_d3_plocal0.01_pure.csv",
+      "source_sha256": "71b4c95e2b502fd5206c6844b150c090d1280f2bbbb82f9f8a681d721d7fff23",
+      "cache_path": "hybrid-error-management/cache_nearterm/NN_d3_plocal0.01_pure.csv"
+    },
+    {
+      "path": "figure10/distillation_basis_avg_cache.csv",
+      "bytes": 1168,
+      "sha256": "1f06d7e0d5098a36e2163a43b6bde5639b684feb383c9920bf5823a85ecbfaff",
+      "columns": [
+        "p_local",
+        "p_transmission",
+        "distill_success_rate",
+        "distill_logical_error"
+      ],
+      "rows": 28,
+      "source_filename": "distillation_basis_avg_cache.csv",
+      "source_sha256": "1f06d7e0d5098a36e2163a43b6bde5639b684feb383c9920bf5823a85ecbfaff",
+      "cache_path": "three-protocols/experiments/error_detection_of_three_codes/results/distillation_basis_avg_cache.csv"
+    },
+    {
+      "path": "figure10/repetition_per_basis.csv",
+      "bytes": 2664,
+      "sha256": "cba35a9753c509d7666baea66f4935bf6d353da966ee51f7a1adaa2c9154a141",
+      "columns": [
+        "p_local",
+        "p_trans",
+        "shots",
+        "accept",
+        "zz",
+        "xx",
+        "avg"
+      ],
+      "rows": 28,
+      "source_filename": "rep_per_basis.csv",
+      "source_sha256": "cba35a9753c509d7666baea66f4935bf6d353da966ee51f7a1adaa2c9154a141"
+    },
+    {
+      "path": "figure10/steane_cache.csv",
+      "bytes": 1214,
+      "sha256": "3966fa078496853362e28ca2546721b4f271c23c9c074727ed9dc62eca59dd11",
+      "columns": [
+        "p_local",
+        "p_transmission",
+        "distill_success_rate",
+        "distill_logical_error"
+      ],
+      "rows": 28,
+      "source_filename": "steane_cache.csv",
+      "source_sha256": "3966fa078496853362e28ca2546721b4f271c23c9c074727ed9dc62eca59dd11",
+      "cache_path": "three-protocols/experiments/error_detection_of_three_codes/results/steane_cache.csv"
+    },
+    {
+      "path": "figure10/surface_cache.csv",
+      "bytes": 1218,
+      "sha256": "f0572cf3f247d62f24ee4f9aae0c1dd5adb27de2fbee5bc5ccc46987c2681b11",
+      "columns": [
+        "p_local",
+        "p_transmission",
+        "distill_success_rate",
+        "distill_logical_error"
+      ],
+      "rows": 28,
+      "source_filename": "surface_cache.csv",
+      "source_sha256": "f0572cf3f247d62f24ee4f9aae0c1dd5adb27de2fbee5bc5ccc46987c2681b11",
+      "cache_path": "three-protocols/experiments/error_detection_of_three_codes/results/surface_cache.csv"
+    },
+    {
+      "path": "figure10/surface_per_basis.csv",
+      "bytes": 3264,
+      "sha256": "0ec0c57b0ec14c62dfa2d72ef295460e6b6eeef2df16955771edd741ce2c99c5",
+      "columns": [
+        "code",
+        "p_local",
+        "p_trans",
+        "shots",
+        "accept",
+        "z",
+        "x",
+        "fZ",
+        "fX",
+        "avg"
+      ],
+      "rows": 28,
+      "source_filename": "fig10_codes_both_bases.csv",
+      "source_sha256": "9d28e1b77d84cd9c125a6145a200f89becbe6341301ca39a04f99a54e9d8c444",
+      "transformation": "Keep the 28 surface-code rows; the Steane-code data are in protocol_comparison/steane_per_basis.csv."
+    },
+    {
+      "path": "figure11/calibration.csv",
+      "bytes": 63879,
+      "sha256": "756da1c09ca7e9a1a898b8f54d9032c1d92b03c948ea88125df9fd9297368d05",
+      "columns": [
+        "estimator",
+        "filter_label",
+        "d",
+        "p_trans",
+        "p_local",
+        "num_layer",
+        "seed",
+        "shots_cal",
+        "score_dtype",
+        "target_accept",
+        "tau",
+        "cal_accept",
+        "n_nan",
+        "n_inf",
+        "all_scores_zero",
+        "nn_batch",
+        "nn_forward_passes",
+        "seconds",
+        "scores_file"
+      ],
+      "rows": 336,
+      "transformation": "Flatten the four acceptance thresholds from each of 84 calibration records. Retain scientific fields; omit process and host identifiers."
+    },
+    {
+      "path": "figure11/calibration_scores/NNFilter_d11_p0.08_scores.npz",
+      "bytes": 914213,
+      "sha256": "0135fa3e4c6060b3ed3d80adbd8df785342477238895718181568f0740f92110",
+      "arrays": {
+        "scores": {
+          "shape": [
+            262144
+          ],
+          "dtype": "float32"
+        }
+      },
+      "source_filename": "NNFilter_d11_p0.08_scores.npz",
+      "source_sha256": "0135fa3e4c6060b3ed3d80adbd8df785342477238895718181568f0740f92110"
+    },
+    {
+      "path": "figure11/calibration_scores/NNFilter_d11_p0.10_scores.npz",
+      "bytes": 920076,
+      "sha256": "1258cfce3e6d7a5042d6f10a594951d205098871d66d8ef0761edf864b496fee",
+      "arrays": {
+        "scores": {
+          "shape": [
+            262144
+          ],
+          "dtype": "float32"
+        }
+      },
+      "source_filename": "NNFilter_d11_p0.10_scores.npz",
+      "source_sha256": "1258cfce3e6d7a5042d6f10a594951d205098871d66d8ef0761edf864b496fee"
+    },
+    {
+      "path": "figure11/calibration_scores/NNFilter_d11_p0.12_scores.npz",
+      "bytes": 927693,
+      "sha256": "edec8beb52ec2c83f1f0015aba0e32c6f6cc2a33bb9d85c7063336af41be9ec3",
+      "arrays": {
+        "scores": {
+          "shape": [
+            262144
+          ],
+          "dtype": "float32"
+        }
+      },
+      "source_filename": "NNFilter_d11_p0.12_scores.npz",
+      "source_sha256": "edec8beb52ec2c83f1f0015aba0e32c6f6cc2a33bb9d85c7063336af41be9ec3"
+    },
+    {
+      "path": "figure11/calibration_scores/NNFilter_d11_p0.14_scores.npz",
+      "bytes": 935566,
+      "sha256": "d46c555cf7d836a9058d75ad42c8fa038bf1b3ccaf0af6386f1bd0ea73c0126f",
+      "arrays": {
+        "scores": {
+          "shape": [
+            262144
+          ],
+          "dtype": "float32"
+        }
+      },
+      "source_filename": "NNFilter_d11_p0.14_scores.npz",
+      "source_sha256": "d46c555cf7d836a9058d75ad42c8fa038bf1b3ccaf0af6386f1bd0ea73c0126f"
+    },
+    {
+      "path": "figure11/calibration_scores/NNFilter_d11_p0.16_scores.npz",
+      "bytes": 941031,
+      "sha256": "38ffa80400d7459b742ef63bb49324de3521ea048d289919bdda7c6d835d0d62",
+      "arrays": {
+        "scores": {
+          "shape": [
+            262144
+          ],
+          "dtype": "float32"
+        }
+      },
+      "source_filename": "NNFilter_d11_p0.16_scores.npz",
+      "source_sha256": "38ffa80400d7459b742ef63bb49324de3521ea048d289919bdda7c6d835d0d62"
+    },
+    {
+      "path": "figure11/calibration_scores/NNFilter_d11_p0.18_scores.npz",
+      "bytes": 945341,
+      "sha256": "7a90bfe1bcd7c5526b7b22852922dfecfef8204c187477144f8f628777569c03",
+      "arrays": {
+        "scores": {
+          "shape": [
+            262144
+          ],
+          "dtype": "float32"
+        }
+      },
+      "source_filename": "NNFilter_d11_p0.18_scores.npz",
+      "source_sha256": "7a90bfe1bcd7c5526b7b22852922dfecfef8204c187477144f8f628777569c03"
+    },
+    {
+      "path": "figure11/calibration_scores/NNFilter_d11_p0.20_scores.npz",
+      "bytes": 947369,
+      "sha256": "53c332c8ffd536e8d6ed0cf97b55f8f06ec2ebfab9bdc06aae5fdda7058934aa",
+      "arrays": {
+        "scores": {
+          "shape": [
+            262144
+          ],
+          "dtype": "float32"
+        }
+      },
+      "source_filename": "NNFilter_d11_p0.20_scores.npz",
+      "source_sha256": "53c332c8ffd536e8d6ed0cf97b55f8f06ec2ebfab9bdc06aae5fdda7058934aa"
+    },
+    {
+      "path": "figure11/calibration_scores/NNFilter_d5_p0.08_scores.npz",
+      "bytes": 893615,
+      "sha256": "ddefc55ac18c8c1aae9a0b8941b7c298d79512f9ef020ca3d54304dbefb06fec",
+      "arrays": {
+        "scores": {
+          "shape": [
+            262144
+          ],
+          "dtype": "float32"
+        }
+      },
+      "source_filename": "NNFilter_d5_p0.08_scores.npz",
+      "source_sha256": "ddefc55ac18c8c1aae9a0b8941b7c298d79512f9ef020ca3d54304dbefb06fec"
+    },
+    {
+      "path": "figure11/calibration_scores/NNFilter_d5_p0.10_scores.npz",
+      "bytes": 916654,
+      "sha256": "667bd78ed3c12f9106b11133edab5c8985077aad49455b2ced67463fd019db54",
+      "arrays": {
+        "scores": {
+          "shape": [
+            262144
+          ],
+          "dtype": "float32"
+        }
+      },
+      "source_filename": "NNFilter_d5_p0.10_scores.npz",
+      "source_sha256": "667bd78ed3c12f9106b11133edab5c8985077aad49455b2ced67463fd019db54"
+    },
+    {
+      "path": "figure11/calibration_scores/NNFilter_d5_p0.12_scores.npz",
+      "bytes": 930511,
+      "sha256": "40b6a79062222be697520ddca8142740e16cc978eb43dda8ff2490d31e8594e0",
+      "arrays": {
+        "scores": {
+          "shape": [
+            262144
+          ],
+          "dtype": "float32"
+        }
+      },
+      "source_filename": "NNFilter_d5_p0.12_scores.npz",
+      "source_sha256": "40b6a79062222be697520ddca8142740e16cc978eb43dda8ff2490d31e8594e0"
+    },
+    {
+      "path": "figure11/calibration_scores/NNFilter_d5_p0.14_scores.npz",
+      "bytes": 939654,
+      "sha256": "36f616f50de523cc61302a9f0c1b59d7eb9f645d9a6e8f1840ce32fa739ad5b4",
+      "arrays": {
+        "scores": {
+          "shape": [
+            262144
+          ],
+          "dtype": "float32"
+        }
+      },
+      "source_filename": "NNFilter_d5_p0.14_scores.npz",
+      "source_sha256": "36f616f50de523cc61302a9f0c1b59d7eb9f645d9a6e8f1840ce32fa739ad5b4"
+    },
+    {
+      "path": "figure11/calibration_scores/NNFilter_d5_p0.16_scores.npz",
+      "bytes": 944436,
+      "sha256": "7d050fa423002f17606d6de6a1cee9d9836d99809ef0d56802619d50d038984f",
+      "arrays": {
+        "scores": {
+          "shape": [
+            262144
+          ],
+          "dtype": "float32"
+        }
+      },
+      "source_filename": "NNFilter_d5_p0.16_scores.npz",
+      "source_sha256": "7d050fa423002f17606d6de6a1cee9d9836d99809ef0d56802619d50d038984f"
+    },
+    {
+      "path": "figure11/calibration_scores/NNFilter_d5_p0.18_scores.npz",
+      "bytes": 946782,
+      "sha256": "bec034954703d9787fa90540aeabb0d68dc43169da133b17151d65d10e4410ac",
+      "arrays": {
+        "scores": {
+          "shape": [
+            262144
+          ],
+          "dtype": "float32"
+        }
+      },
+      "source_filename": "NNFilter_d5_p0.18_scores.npz",
+      "source_sha256": "bec034954703d9787fa90540aeabb0d68dc43169da133b17151d65d10e4410ac"
+    },
+    {
+      "path": "figure11/calibration_scores/NNFilter_d5_p0.20_scores.npz",
+      "bytes": 948356,
+      "sha256": "9e364dd6c0b898e86160e802a294317fdd385e7bec04578daaf935facba89596",
+      "arrays": {
+        "scores": {
+          "shape": [
+            262144
+          ],
+          "dtype": "float32"
+        }
+      },
+      "source_filename": "NNFilter_d5_p0.20_scores.npz",
+      "source_sha256": "9e364dd6c0b898e86160e802a294317fdd385e7bec04578daaf935facba89596"
+    },
+    {
+      "path": "figure11/calibration_scores/NNFilter_d7_p0.08_scores.npz",
+      "bytes": 934377,
+      "sha256": "6c0e1805ab7cc87db2a22fda8db33c3f8e1892cafd962e2e8d84af6c1c4380fa",
+      "arrays": {
+        "scores": {
+          "shape": [
+            262144
+          ],
+          "dtype": "float32"
+        }
+      },
+      "source_filename": "NNFilter_d7_p0.08_scores.npz",
+      "source_sha256": "6c0e1805ab7cc87db2a22fda8db33c3f8e1892cafd962e2e8d84af6c1c4380fa"
+    },
+    {
+      "path": "figure11/calibration_scores/NNFilter_d7_p0.10_scores.npz",
+      "bytes": 937160,
+      "sha256": "2c83958d31952934b8468d1d52d11cd1e97978ab2adade040cc8aa4dd674b493",
+      "arrays": {
+        "scores": {
+          "shape": [
+            262144
+          ],
+          "dtype": "float32"
+        }
+      },
+      "source_filename": "NNFilter_d7_p0.10_scores.npz",
+      "source_sha256": "2c83958d31952934b8468d1d52d11cd1e97978ab2adade040cc8aa4dd674b493"
+    },
+    {
+      "path": "figure11/calibration_scores/NNFilter_d7_p0.12_scores.npz",
+      "bytes": 940230,
+      "sha256": "3cc42b54a9aa96d425fa002884782d3a4debba29dd54266169f5b73d904df9f1",
+      "arrays": {
+        "scores": {
+          "shape": [
+            262144
+          ],
+          "dtype": "float32"
+        }
+      },
+      "source_filename": "NNFilter_d7_p0.12_scores.npz",
+      "source_sha256": "3cc42b54a9aa96d425fa002884782d3a4debba29dd54266169f5b73d904df9f1"
+    },
+    {
+      "path": "figure11/calibration_scores/NNFilter_d7_p0.14_scores.npz",
+      "bytes": 942783,
+      "sha256": "338f9883521da31bc63d634895733b468a4a9d49ceef3bfa2bbcef64638f515c",
+      "arrays": {
+        "scores": {
+          "shape": [
+            262144
+          ],
+          "dtype": "float32"
+        }
+      },
+      "source_filename": "NNFilter_d7_p0.14_scores.npz",
+      "source_sha256": "338f9883521da31bc63d634895733b468a4a9d49ceef3bfa2bbcef64638f515c"
+    },
+    {
+      "path": "figure11/calibration_scores/NNFilter_d7_p0.16_scores.npz",
+      "bytes": 944873,
+      "sha256": "4497eef5808747c4c7ee799e1d20386086ea26f433f606d602e3e90c8fdca982",
+      "arrays": {
+        "scores": {
+          "shape": [
+            262144
+          ],
+          "dtype": "float32"
+        }
+      },
+      "source_filename": "NNFilter_d7_p0.16_scores.npz",
+      "source_sha256": "4497eef5808747c4c7ee799e1d20386086ea26f433f606d602e3e90c8fdca982"
+    },
+    {
+      "path": "figure11/calibration_scores/NNFilter_d7_p0.18_scores.npz",
+      "bytes": 947096,
+      "sha256": "44c999877613e0d83663784d959e87ad978223402f2e1f094e2a8580b95cb43e",
+      "arrays": {
+        "scores": {
+          "shape": [
+            262144
+          ],
+          "dtype": "float32"
+        }
+      },
+      "source_filename": "NNFilter_d7_p0.18_scores.npz",
+      "source_sha256": "44c999877613e0d83663784d959e87ad978223402f2e1f094e2a8580b95cb43e"
+    },
+    {
+      "path": "figure11/calibration_scores/NNFilter_d7_p0.20_scores.npz",
+      "bytes": 948783,
+      "sha256": "99a8a3e6f0e6903a234b577319c9e76a1679b9bdefc6f23f5838e3d3aaedf14b",
+      "arrays": {
+        "scores": {
+          "shape": [
+            262144
+          ],
+          "dtype": "float32"
+        }
+      },
+      "source_filename": "NNFilter_d7_p0.20_scores.npz",
+      "source_sha256": "99a8a3e6f0e6903a234b577319c9e76a1679b9bdefc6f23f5838e3d3aaedf14b"
+    },
+    {
+      "path": "figure11/calibration_scores/NNFilter_d9_p0.08_scores.npz",
+      "bytes": 914858,
+      "sha256": "8cf563ced16ae89446ccffce94eb86210cae9ba071aaa2362c5fbed3b40cf89c",
+      "arrays": {
+        "scores": {
+          "shape": [
+            262144
+          ],
+          "dtype": "float32"
+        }
+      },
+      "source_filename": "NNFilter_d9_p0.08_scores.npz",
+      "source_sha256": "8cf563ced16ae89446ccffce94eb86210cae9ba071aaa2362c5fbed3b40cf89c"
+    },
+    {
+      "path": "figure11/calibration_scores/NNFilter_d9_p0.10_scores.npz",
+      "bytes": 922091,
+      "sha256": "585e169686602bed0b90a8860cabe758db9ef8b70392e5da7863c0685ee537af",
+      "arrays": {
+        "scores": {
+          "shape": [
+            262144
+          ],
+          "dtype": "float32"
+        }
+      },
+      "source_filename": "NNFilter_d9_p0.10_scores.npz",
+      "source_sha256": "585e169686602bed0b90a8860cabe758db9ef8b70392e5da7863c0685ee537af"
+    },
+    {
+      "path": "figure11/calibration_scores/NNFilter_d9_p0.12_scores.npz",
+      "bytes": 928156,
+      "sha256": "3142e0c1e7b40974335f767f07b42ad8062cf8998f4c24284ac81721da7e0195",
+      "arrays": {
+        "scores": {
+          "shape": [
+            262144
+          ],
+          "dtype": "float32"
+        }
+      },
+      "source_filename": "NNFilter_d9_p0.12_scores.npz",
+      "source_sha256": "3142e0c1e7b40974335f767f07b42ad8062cf8998f4c24284ac81721da7e0195"
+    },
+    {
+      "path": "figure11/calibration_scores/NNFilter_d9_p0.14_scores.npz",
+      "bytes": 934262,
+      "sha256": "680e7193e7b2bbb7bd41a19378a8ebb13d707c0d354317093bbb1e55530e7190",
+      "arrays": {
+        "scores": {
+          "shape": [
+            262144
+          ],
+          "dtype": "float32"
+        }
+      },
+      "source_filename": "NNFilter_d9_p0.14_scores.npz",
+      "source_sha256": "680e7193e7b2bbb7bd41a19378a8ebb13d707c0d354317093bbb1e55530e7190"
+    },
+    {
+      "path": "figure11/calibration_scores/NNFilter_d9_p0.16_scores.npz",
+      "bytes": 939864,
+      "sha256": "5cfd767dae7593ff84080545c6c3bff83672fbe638287383e2c1a63e8c76a643",
+      "arrays": {
+        "scores": {
+          "shape": [
+            262144
+          ],
+          "dtype": "float32"
+        }
+      },
+      "source_filename": "NNFilter_d9_p0.16_scores.npz",
+      "source_sha256": "5cfd767dae7593ff84080545c6c3bff83672fbe638287383e2c1a63e8c76a643"
+    },
+    {
+      "path": "figure11/calibration_scores/NNFilter_d9_p0.18_scores.npz",
+      "bytes": 943724,
+      "sha256": "7fb46463d359f1a4674a1ad1fe3c002296661df1b1dd900d2d2eee4cf5463cd3",
+      "arrays": {
+        "scores": {
+          "shape": [
+            262144
+          ],
+          "dtype": "float32"
+        }
+      },
+      "source_filename": "NNFilter_d9_p0.18_scores.npz",
+      "source_sha256": "7fb46463d359f1a4674a1ad1fe3c002296661df1b1dd900d2d2eee4cf5463cd3"
+    },
+    {
+      "path": "figure11/calibration_scores/NNFilter_d9_p0.20_scores.npz",
+      "bytes": 946655,
+      "sha256": "50010e75ee311669c4b764fc597cd52018d4f1cd4fc5e405644f1f8cba0dae06",
+      "arrays": {
+        "scores": {
+          "shape": [
+            262144
+          ],
+          "dtype": "float32"
+        }
+      },
+      "source_filename": "NNFilter_d9_p0.20_scores.npz",
+      "source_sha256": "50010e75ee311669c4b764fc597cd52018d4f1cd4fc5e405644f1f8cba0dae06"
+    },
+    {
+      "path": "figure11/calibration_scores/SyndromeWeight_d11_p0.08_scores.npz",
+      "bytes": 298150,
+      "sha256": "2347593a699f1a52afb3e37f060415ae03ea31c392510206006b88e158947930",
+      "arrays": {
+        "scores": {
+          "shape": [
+            262144
+          ],
+          "dtype": "float64"
+        }
+      },
+      "source_filename": "SyndromeWeight_d11_p0.08_scores.npz",
+      "source_sha256": "2347593a699f1a52afb3e37f060415ae03ea31c392510206006b88e158947930"
+    },
+    {
+      "path": "figure11/calibration_scores/SyndromeWeight_d11_p0.10_scores.npz",
+      "bytes": 299285,
+      "sha256": "f53f6a11b85921725553b4c5d887916bc6d0a72ee30dceeb3885c7ff2c437fc9",
+      "arrays": {
+        "scores": {
+          "shape": [
+            262144
+          ],
+          "dtype": "float64"
+        }
+      },
+      "source_filename": "SyndromeWeight_d11_p0.10_scores.npz",
+      "source_sha256": "f53f6a11b85921725553b4c5d887916bc6d0a72ee30dceeb3885c7ff2c437fc9"
+    },
+    {
+      "path": "figure11/calibration_scores/SyndromeWeight_d11_p0.12_scores.npz",
+      "bytes": 300713,
+      "sha256": "c8735c8ef1d77419fe18f60c79baf4a46b0a9e4c74918ff9cfdfdc6bbeae125b",
+      "arrays": {
+        "scores": {
+          "shape": [
+            262144
+          ],
+          "dtype": "float64"
+        }
+      },
+      "source_filename": "SyndromeWeight_d11_p0.12_scores.npz",
+      "source_sha256": "c8735c8ef1d77419fe18f60c79baf4a46b0a9e4c74918ff9cfdfdc6bbeae125b"
+    },
+    {
+      "path": "figure11/calibration_scores/SyndromeWeight_d11_p0.14_scores.npz",
+      "bytes": 301247,
+      "sha256": "af06af5839e7991c07d9c8066eb560c8bb5a838f59c030ae3497646cff7ada19",
+      "arrays": {
+        "scores": {
+          "shape": [
+            262144
+          ],
+          "dtype": "float64"
+        }
+      },
+      "source_filename": "SyndromeWeight_d11_p0.14_scores.npz",
+      "source_sha256": "af06af5839e7991c07d9c8066eb560c8bb5a838f59c030ae3497646cff7ada19"
+    },
+    {
+      "path": "figure11/calibration_scores/SyndromeWeight_d11_p0.16_scores.npz",
+      "bytes": 300405,
+      "sha256": "9a97cb71562bd0f39b139664c00699253fe01d21398361dcd8ac08c4b79042fd",
+      "arrays": {
+        "scores": {
+          "shape": [
+            262144
+          ],
+          "dtype": "float64"
+        }
+      },
+      "source_filename": "SyndromeWeight_d11_p0.16_scores.npz",
+      "source_sha256": "9a97cb71562bd0f39b139664c00699253fe01d21398361dcd8ac08c4b79042fd"
+    },
+    {
+      "path": "figure11/calibration_scores/SyndromeWeight_d11_p0.18_scores.npz",
+      "bytes": 299534,
+      "sha256": "63a91c373967c8dc8c9d8bdd41bcfe0720225ee3acc1c7a77ef8f0cbc7993bac",
+      "arrays": {
+        "scores": {
+          "shape": [
+            262144
+          ],
+          "dtype": "float64"
+        }
+      },
+      "source_filename": "SyndromeWeight_d11_p0.18_scores.npz",
+      "source_sha256": "63a91c373967c8dc8c9d8bdd41bcfe0720225ee3acc1c7a77ef8f0cbc7993bac"
+    },
+    {
+      "path": "figure11/calibration_scores/SyndromeWeight_d11_p0.20_scores.npz",
+      "bytes": 298551,
+      "sha256": "aa23b646d09e7f9edcebe4a1af7aee2beb294fcff6dacaf277f83274f37ce6c8",
+      "arrays": {
+        "scores": {
+          "shape": [
+            262144
+          ],
+          "dtype": "float64"
+        }
+      },
+      "source_filename": "SyndromeWeight_d11_p0.20_scores.npz",
+      "source_sha256": "aa23b646d09e7f9edcebe4a1af7aee2beb294fcff6dacaf277f83274f37ce6c8"
+    },
+    {
+      "path": "figure11/calibration_scores/SyndromeWeight_d5_p0.08_scores.npz",
+      "bytes": 236530,
+      "sha256": "805d6296bb08857b54feaa7acba443a733bde9ce53f00eab379dcf51b7a27340",
+      "arrays": {
+        "scores": {
+          "shape": [
+            262144
+          ],
+          "dtype": "float64"
+        }
+      },
+      "source_filename": "SyndromeWeight_d5_p0.08_scores.npz",
+      "source_sha256": "805d6296bb08857b54feaa7acba443a733bde9ce53f00eab379dcf51b7a27340"
+    },
+    {
+      "path": "figure11/calibration_scores/SyndromeWeight_d5_p0.10_scores.npz",
+      "bytes": 240093,
+      "sha256": "815e18637309e9818b9a0248f3393f836bc0fc47751f08b34b65b687f4845e55",
+      "arrays": {
+        "scores": {
+          "shape": [
+            262144
+          ],
+          "dtype": "float64"
+        }
+      },
+      "source_filename": "SyndromeWeight_d5_p0.10_scores.npz",
+      "source_sha256": "815e18637309e9818b9a0248f3393f836bc0fc47751f08b34b65b687f4845e55"
+    },
+    {
+      "path": "figure11/calibration_scores/SyndromeWeight_d5_p0.12_scores.npz",
+      "bytes": 241716,
+      "sha256": "65c35405bcb99dfc19ca5b5ce581e41dc28c3ad91c7a5087eef6938d40fa836c",
+      "arrays": {
+        "scores": {
+          "shape": [
+            262144
+          ],
+          "dtype": "float64"
+        }
+      },
+      "source_filename": "SyndromeWeight_d5_p0.12_scores.npz",
+      "source_sha256": "65c35405bcb99dfc19ca5b5ce581e41dc28c3ad91c7a5087eef6938d40fa836c"
+    },
+    {
+      "path": "figure11/calibration_scores/SyndromeWeight_d5_p0.14_scores.npz",
+      "bytes": 242003,
+      "sha256": "ab45b999789fd4bbb5ceca39c0568e7c1198a2516a1561fb357b815cc605447a",
+      "arrays": {
+        "scores": {
+          "shape": [
+            262144
+          ],
+          "dtype": "float64"
+        }
+      },
+      "source_filename": "SyndromeWeight_d5_p0.14_scores.npz",
+      "source_sha256": "ab45b999789fd4bbb5ceca39c0568e7c1198a2516a1561fb357b815cc605447a"
+    },
+    {
+      "path": "figure11/calibration_scores/SyndromeWeight_d5_p0.16_scores.npz",
+      "bytes": 242274,
+      "sha256": "507bca777373807aaa6e48d6391b7e70d10baa6a1fd41144e58d94b2ff93b720",
+      "arrays": {
+        "scores": {
+          "shape": [
+            262144
+          ],
+          "dtype": "float64"
+        }
+      },
+      "source_filename": "SyndromeWeight_d5_p0.16_scores.npz",
+      "source_sha256": "507bca777373807aaa6e48d6391b7e70d10baa6a1fd41144e58d94b2ff93b720"
+    },
+    {
+      "path": "figure11/calibration_scores/SyndromeWeight_d5_p0.18_scores.npz",
+      "bytes": 241936,
+      "sha256": "aaa70dab1e0e1f7723dfeba860fadc9e744dbfe72b5ae03f957ce6406a1e89ae",
+      "arrays": {
+        "scores": {
+          "shape": [
+            262144
+          ],
+          "dtype": "float64"
+        }
+      },
+      "source_filename": "SyndromeWeight_d5_p0.18_scores.npz",
+      "source_sha256": "aaa70dab1e0e1f7723dfeba860fadc9e744dbfe72b5ae03f957ce6406a1e89ae"
+    },
+    {
+      "path": "figure11/calibration_scores/SyndromeWeight_d5_p0.20_scores.npz",
+      "bytes": 241318,
+      "sha256": "f58c23ccdba3d28986209b2f85ae596fd3d669ab00c1c4fada8985f95c914c74",
+      "arrays": {
+        "scores": {
+          "shape": [
+            262144
+          ],
+          "dtype": "float64"
+        }
+      },
+      "source_filename": "SyndromeWeight_d5_p0.20_scores.npz",
+      "source_sha256": "f58c23ccdba3d28986209b2f85ae596fd3d669ab00c1c4fada8985f95c914c74"
+    },
+    {
+      "path": "figure11/calibration_scores/SyndromeWeight_d7_p0.08_scores.npz",
+      "bytes": 268101,
+      "sha256": "0a1cb40455ec3d8b7a327e536e648ffafe2c58eacf21b83a32689e91958a0a33",
+      "arrays": {
+        "scores": {
+          "shape": [
+            262144
+          ],
+          "dtype": "float64"
+        }
+      },
+      "source_filename": "SyndromeWeight_d7_p0.08_scores.npz",
+      "source_sha256": "0a1cb40455ec3d8b7a327e536e648ffafe2c58eacf21b83a32689e91958a0a33"
+    },
+    {
+      "path": "figure11/calibration_scores/SyndromeWeight_d7_p0.10_scores.npz",
+      "bytes": 270272,
+      "sha256": "c2b9e7a420c6ceb738e0525a1cb845652ac1724bda22c7deae268159917345b3",
+      "arrays": {
+        "scores": {
+          "shape": [
+            262144
+          ],
+          "dtype": "float64"
+        }
+      },
+      "source_filename": "SyndromeWeight_d7_p0.10_scores.npz",
+      "source_sha256": "c2b9e7a420c6ceb738e0525a1cb845652ac1724bda22c7deae268159917345b3"
+    },
+    {
+      "path": "figure11/calibration_scores/SyndromeWeight_d7_p0.12_scores.npz",
+      "bytes": 271024,
+      "sha256": "27eeae629393e866396fd237866fddd4eebe0782752249509c60cb0250499212",
+      "arrays": {
+        "scores": {
+          "shape": [
+            262144
+          ],
+          "dtype": "float64"
+        }
+      },
+      "source_filename": "SyndromeWeight_d7_p0.12_scores.npz",
+      "source_sha256": "27eeae629393e866396fd237866fddd4eebe0782752249509c60cb0250499212"
+    },
+    {
+      "path": "figure11/calibration_scores/SyndromeWeight_d7_p0.14_scores.npz",
+      "bytes": 271559,
+      "sha256": "89ed0b9301fb1230c1da5aeef4b79e461e8418367e94f8b1fd5e34201e9c7206",
+      "arrays": {
+        "scores": {
+          "shape": [
+            262144
+          ],
+          "dtype": "float64"
+        }
+      },
+      "source_filename": "SyndromeWeight_d7_p0.14_scores.npz",
+      "source_sha256": "89ed0b9301fb1230c1da5aeef4b79e461e8418367e94f8b1fd5e34201e9c7206"
+    },
+    {
+      "path": "figure11/calibration_scores/SyndromeWeight_d7_p0.16_scores.npz",
+      "bytes": 270854,
+      "sha256": "591a0de6b201bf5f3c9ce19d92a5487a06ccb2487652cb97af173b0260141543",
+      "arrays": {
+        "scores": {
+          "shape": [
+            262144
+          ],
+          "dtype": "float64"
+        }
+      },
+      "source_filename": "SyndromeWeight_d7_p0.16_scores.npz",
+      "source_sha256": "591a0de6b201bf5f3c9ce19d92a5487a06ccb2487652cb97af173b0260141543"
+    },
+    {
+      "path": "figure11/calibration_scores/SyndromeWeight_d7_p0.18_scores.npz",
+      "bytes": 269805,
+      "sha256": "2fa624ba9954abfced0c1427f0127f317b354a58e6b8b85ba62e739e1151768f",
+      "arrays": {
+        "scores": {
+          "shape": [
+            262144
+          ],
+          "dtype": "float64"
+        }
+      },
+      "source_filename": "SyndromeWeight_d7_p0.18_scores.npz",
+      "source_sha256": "2fa624ba9954abfced0c1427f0127f317b354a58e6b8b85ba62e739e1151768f"
+    },
+    {
+      "path": "figure11/calibration_scores/SyndromeWeight_d7_p0.20_scores.npz",
+      "bytes": 269103,
+      "sha256": "53969bd2f0fe24a81ad9d0961a4a08113de5ff5a3478816f57af549e4a7a031f",
+      "arrays": {
+        "scores": {
+          "shape": [
+            262144
+          ],
+          "dtype": "float64"
+        }
+      },
+      "source_filename": "SyndromeWeight_d7_p0.20_scores.npz",
+      "source_sha256": "53969bd2f0fe24a81ad9d0961a4a08113de5ff5a3478816f57af549e4a7a031f"
+    },
+    {
+      "path": "figure11/calibration_scores/SyndromeWeight_d9_p0.08_scores.npz",
+      "bytes": 293723,
+      "sha256": "9bada8afd219306869b14ac7e73ebe76ac7ad26a3d5eebea1bde8392314bd339",
+      "arrays": {
+        "scores": {
+          "shape": [
+            262144
+          ],
+          "dtype": "float64"
+        }
+      },
+      "source_filename": "SyndromeWeight_d9_p0.08_scores.npz",
+      "source_sha256": "9bada8afd219306869b14ac7e73ebe76ac7ad26a3d5eebea1bde8392314bd339"
+    },
+    {
+      "path": "figure11/calibration_scores/SyndromeWeight_d9_p0.10_scores.npz",
+      "bytes": 295240,
+      "sha256": "9e5fdecae42f5560c30c471f6299cfff3060ccb65c9f0d2563b547fe1401e997",
+      "arrays": {
+        "scores": {
+          "shape": [
+            262144
+          ],
+          "dtype": "float64"
+        }
+      },
+      "source_filename": "SyndromeWeight_d9_p0.10_scores.npz",
+      "source_sha256": "9e5fdecae42f5560c30c471f6299cfff3060ccb65c9f0d2563b547fe1401e997"
+    },
+    {
+      "path": "figure11/calibration_scores/SyndromeWeight_d9_p0.12_scores.npz",
+      "bytes": 295533,
+      "sha256": "c26308905397ccbe13738676d4d61bed8de64c9b508362e66512fa56bd212fe8",
+      "arrays": {
+        "scores": {
+          "shape": [
+            262144
+          ],
+          "dtype": "float64"
+        }
+      },
+      "source_filename": "SyndromeWeight_d9_p0.12_scores.npz",
+      "source_sha256": "c26308905397ccbe13738676d4d61bed8de64c9b508362e66512fa56bd212fe8"
+    },
+    {
+      "path": "figure11/calibration_scores/SyndromeWeight_d9_p0.14_scores.npz",
+      "bytes": 295711,
+      "sha256": "9ac3b8041c65d8c9e19a0afb9559773b0decc10e11befb1ddbc95077ff3c45e0",
+      "arrays": {
+        "scores": {
+          "shape": [
+            262144
+          ],
+          "dtype": "float64"
+        }
+      },
+      "source_filename": "SyndromeWeight_d9_p0.14_scores.npz",
+      "source_sha256": "9ac3b8041c65d8c9e19a0afb9559773b0decc10e11befb1ddbc95077ff3c45e0"
+    },
+    {
+      "path": "figure11/calibration_scores/SyndromeWeight_d9_p0.16_scores.npz",
+      "bytes": 294682,
+      "sha256": "348932519e96e47cccf1ceb420af61ab6e7851c40b23644ee398fa924eb460c2",
+      "arrays": {
+        "scores": {
+          "shape": [
+            262144
+          ],
+          "dtype": "float64"
+        }
+      },
+      "source_filename": "SyndromeWeight_d9_p0.16_scores.npz",
+      "source_sha256": "348932519e96e47cccf1ceb420af61ab6e7851c40b23644ee398fa924eb460c2"
+    },
+    {
+      "path": "figure11/calibration_scores/SyndromeWeight_d9_p0.18_scores.npz",
+      "bytes": 293845,
+      "sha256": "a45f13df0a1875b5b867df6ad70c5bec16adc5239b0b92fb4ffe6e2af619411b",
+      "arrays": {
+        "scores": {
+          "shape": [
+            262144
+          ],
+          "dtype": "float64"
+        }
+      },
+      "source_filename": "SyndromeWeight_d9_p0.18_scores.npz",
+      "source_sha256": "a45f13df0a1875b5b867df6ad70c5bec16adc5239b0b92fb4ffe6e2af619411b"
+    },
+    {
+      "path": "figure11/calibration_scores/SyndromeWeight_d9_p0.20_scores.npz",
+      "bytes": 292600,
+      "sha256": "593fe15fe71b1566448abbfaa2a64b24332b8faedfa5bbf3d1f380689e6a063a",
+      "arrays": {
+        "scores": {
+          "shape": [
+            262144
+          ],
+          "dtype": "float64"
+        }
+      },
+      "source_filename": "SyndromeWeight_d9_p0.20_scores.npz",
+      "source_sha256": "593fe15fe71b1566448abbfaa2a64b24332b8faedfa5bbf3d1f380689e6a063a"
+    },
+    {
+      "path": "figure11/calibration_scores/ZCosetGap_d11_p0.08_scores.npz",
+      "bytes": 1335022,
+      "sha256": "c0ec5fcc67aafae3fb182d4afda4b0aa54eb78d7b15b689a764eb8daf44e3314",
+      "arrays": {
+        "scores": {
+          "shape": [
+            262144
+          ],
+          "dtype": "float64"
+        }
+      },
+      "source_filename": "ZCosetGap_d11_p0.08_scores.npz",
+      "source_sha256": "c0ec5fcc67aafae3fb182d4afda4b0aa54eb78d7b15b689a764eb8daf44e3314"
+    },
+    {
+      "path": "figure11/calibration_scores/ZCosetGap_d11_p0.10_scores.npz",
+      "bytes": 1295485,
+      "sha256": "38421662e54317436f661a89ddcbf37d1fc1d9a3a432f03a0925dde7d3c3fe37",
+      "arrays": {
+        "scores": {
+          "shape": [
+            262144
+          ],
+          "dtype": "float64"
+        }
+      },
+      "source_filename": "ZCosetGap_d11_p0.10_scores.npz",
+      "source_sha256": "38421662e54317436f661a89ddcbf37d1fc1d9a3a432f03a0925dde7d3c3fe37"
+    },
+    {
+      "path": "figure11/calibration_scores/ZCosetGap_d11_p0.12_scores.npz",
+      "bytes": 1257619,
+      "sha256": "c4449c76d1248c131bb85cd98af052d1339bc1fedd662d25d98c6792759a793c",
+      "arrays": {
+        "scores": {
+          "shape": [
+            262144
+          ],
+          "dtype": "float64"
+        }
+      },
+      "source_filename": "ZCosetGap_d11_p0.12_scores.npz",
+      "source_sha256": "c4449c76d1248c131bb85cd98af052d1339bc1fedd662d25d98c6792759a793c"
+    },
+    {
+      "path": "figure11/calibration_scores/ZCosetGap_d11_p0.14_scores.npz",
+      "bytes": 1215519,
+      "sha256": "de53ca4d26247be588d8e94862119e5fe1eb7f4fca09009008cb0bfb408735f1",
+      "arrays": {
+        "scores": {
+          "shape": [
+            262144
+          ],
+          "dtype": "float64"
+        }
+      },
+      "source_filename": "ZCosetGap_d11_p0.14_scores.npz",
+      "source_sha256": "de53ca4d26247be588d8e94862119e5fe1eb7f4fca09009008cb0bfb408735f1"
+    },
+    {
+      "path": "figure11/calibration_scores/ZCosetGap_d11_p0.16_scores.npz",
+      "bytes": 1181265,
+      "sha256": "9b085159814aa922737dba89280e0c7ca32db9c3f7473808f9dc96e17bf27739",
+      "arrays": {
+        "scores": {
+          "shape": [
+            262144
+          ],
+          "dtype": "float64"
+        }
+      },
+      "source_filename": "ZCosetGap_d11_p0.16_scores.npz",
+      "source_sha256": "9b085159814aa922737dba89280e0c7ca32db9c3f7473808f9dc96e17bf27739"
+    },
+    {
+      "path": "figure11/calibration_scores/ZCosetGap_d11_p0.18_scores.npz",
+      "bytes": 1154742,
+      "sha256": "cea7d3e815c3ad1b188c84d0627ad045d8fa6dff0af4cc80229857a908fbf43c",
+      "arrays": {
+        "scores": {
+          "shape": [
+            262144
+          ],
+          "dtype": "float64"
+        }
+      },
+      "source_filename": "ZCosetGap_d11_p0.18_scores.npz",
+      "source_sha256": "cea7d3e815c3ad1b188c84d0627ad045d8fa6dff0af4cc80229857a908fbf43c"
+    },
+    {
+      "path": "figure11/calibration_scores/ZCosetGap_d11_p0.20_scores.npz",
+      "bytes": 1133731,
+      "sha256": "e455ae8e593724e24fca8f099c99b3b92cdf93eedafb01633be1a7299997d25a",
+      "arrays": {
+        "scores": {
+          "shape": [
+            262144
+          ],
+          "dtype": "float64"
+        }
+      },
+      "source_filename": "ZCosetGap_d11_p0.20_scores.npz",
+      "source_sha256": "e455ae8e593724e24fca8f099c99b3b92cdf93eedafb01633be1a7299997d25a"
+    },
+    {
+      "path": "figure11/calibration_scores/ZCosetGap_d5_p0.08_scores.npz",
+      "bytes": 643351,
+      "sha256": "6328bf120fb8b9988da5222422c38d1c687bb6632e4a81fefed43be5f6688cb0",
+      "arrays": {
+        "scores": {
+          "shape": [
+            262144
+          ],
+          "dtype": "float64"
+        }
+      },
+      "source_filename": "ZCosetGap_d5_p0.08_scores.npz",
+      "source_sha256": "6328bf120fb8b9988da5222422c38d1c687bb6632e4a81fefed43be5f6688cb0"
+    },
+    {
+      "path": "figure11/calibration_scores/ZCosetGap_d5_p0.10_scores.npz",
+      "bytes": 657605,
+      "sha256": "4cd474a1aa3aa1e17af9612f443072861dd8253c74bce30c848018fd185d295f",
+      "arrays": {
+        "scores": {
+          "shape": [
+            262144
+          ],
+          "dtype": "float64"
+        }
+      },
+      "source_filename": "ZCosetGap_d5_p0.10_scores.npz",
+      "source_sha256": "4cd474a1aa3aa1e17af9612f443072861dd8253c74bce30c848018fd185d295f"
+    },
+    {
+      "path": "figure11/calibration_scores/ZCosetGap_d5_p0.12_scores.npz",
+      "bytes": 661652,
+      "sha256": "ce66995685fad0c608bf5fb66636b19841c33825f3d175024b5017126f374d0d",
+      "arrays": {
+        "scores": {
+          "shape": [
+            262144
+          ],
+          "dtype": "float64"
+        }
+      },
+      "source_filename": "ZCosetGap_d5_p0.12_scores.npz",
+      "source_sha256": "ce66995685fad0c608bf5fb66636b19841c33825f3d175024b5017126f374d0d"
+    },
+    {
+      "path": "figure11/calibration_scores/ZCosetGap_d5_p0.14_scores.npz",
+      "bytes": 661784,
+      "sha256": "90e9798b1e2d82a505ddafa44bb1391b137759ce444a28037431285b01e8fc8a",
+      "arrays": {
+        "scores": {
+          "shape": [
+            262144
+          ],
+          "dtype": "float64"
+        }
+      },
+      "source_filename": "ZCosetGap_d5_p0.14_scores.npz",
+      "source_sha256": "90e9798b1e2d82a505ddafa44bb1391b137759ce444a28037431285b01e8fc8a"
+    },
+    {
+      "path": "figure11/calibration_scores/ZCosetGap_d5_p0.16_scores.npz",
+      "bytes": 654585,
+      "sha256": "202cde1d1ac7194b69a92ebf010301ba80831e880b7367c45d0ea8df1a835094",
+      "arrays": {
+        "scores": {
+          "shape": [
+            262144
+          ],
+          "dtype": "float64"
+        }
+      },
+      "source_filename": "ZCosetGap_d5_p0.16_scores.npz",
+      "source_sha256": "202cde1d1ac7194b69a92ebf010301ba80831e880b7367c45d0ea8df1a835094"
+    },
+    {
+      "path": "figure11/calibration_scores/ZCosetGap_d5_p0.18_scores.npz",
+      "bytes": 651845,
+      "sha256": "c32a163d5d5767ceff535de5c2feb5d2a56e8ceaee6dfec3b40c428c746f1556",
+      "arrays": {
+        "scores": {
+          "shape": [
+            262144
+          ],
+          "dtype": "float64"
+        }
+      },
+      "source_filename": "ZCosetGap_d5_p0.18_scores.npz",
+      "source_sha256": "c32a163d5d5767ceff535de5c2feb5d2a56e8ceaee6dfec3b40c428c746f1556"
+    },
+    {
+      "path": "figure11/calibration_scores/ZCosetGap_d5_p0.20_scores.npz",
+      "bytes": 648369,
+      "sha256": "bb9921b478ccf091869b7cb1b44991e76d804425082b08cd4129af7a2b4d3206",
+      "arrays": {
+        "scores": {
+          "shape": [
+            262144
+          ],
+          "dtype": "float64"
+        }
+      },
+      "source_filename": "ZCosetGap_d5_p0.20_scores.npz",
+      "source_sha256": "bb9921b478ccf091869b7cb1b44991e76d804425082b08cd4129af7a2b4d3206"
+    },
+    {
+      "path": "figure11/calibration_scores/ZCosetGap_d7_p0.08_scores.npz",
+      "bytes": 992550,
+      "sha256": "388a83589ea147d937c8f6c94c8379bf6c899072c5656d63babb3d16704e016c",
+      "arrays": {
+        "scores": {
+          "shape": [
+            262144
+          ],
+          "dtype": "float64"
+        }
+      },
+      "source_filename": "ZCosetGap_d7_p0.08_scores.npz",
+      "source_sha256": "388a83589ea147d937c8f6c94c8379bf6c899072c5656d63babb3d16704e016c"
+    },
+    {
+      "path": "figure11/calibration_scores/ZCosetGap_d7_p0.10_scores.npz",
+      "bytes": 985160,
+      "sha256": "4705eff546ffd9cc6ab538f2f80dff71bff174a21f904782c71679bee14501ca",
+      "arrays": {
+        "scores": {
+          "shape": [
+            262144
+          ],
+          "dtype": "float64"
+        }
+      },
+      "source_filename": "ZCosetGap_d7_p0.10_scores.npz",
+      "source_sha256": "4705eff546ffd9cc6ab538f2f80dff71bff174a21f904782c71679bee14501ca"
+    },
+    {
+      "path": "figure11/calibration_scores/ZCosetGap_d7_p0.12_scores.npz",
+      "bytes": 970296,
+      "sha256": "8cf2f66113be3a3981842b8857bf08eddee48fad0fac4528d894a603ff25154a",
+      "arrays": {
+        "scores": {
+          "shape": [
+            262144
+          ],
+          "dtype": "float64"
+        }
+      },
+      "source_filename": "ZCosetGap_d7_p0.12_scores.npz",
+      "source_sha256": "8cf2f66113be3a3981842b8857bf08eddee48fad0fac4528d894a603ff25154a"
+    },
+    {
+      "path": "figure11/calibration_scores/ZCosetGap_d7_p0.14_scores.npz",
+      "bytes": 949523,
+      "sha256": "e3786d255e01ab1c429008dc741ce96fb568d896effac3c8060266bc75c7ab3b",
+      "arrays": {
+        "scores": {
+          "shape": [
+            262144
+          ],
+          "dtype": "float64"
+        }
+      },
+      "source_filename": "ZCosetGap_d7_p0.14_scores.npz",
+      "source_sha256": "e3786d255e01ab1c429008dc741ce96fb568d896effac3c8060266bc75c7ab3b"
+    },
+    {
+      "path": "figure11/calibration_scores/ZCosetGap_d7_p0.16_scores.npz",
+      "bytes": 931787,
+      "sha256": "a823477a15fc1207306e91b0ec0030a1bf4fb1a4752d309bde445e165dd56319",
+      "arrays": {
+        "scores": {
+          "shape": [
+            262144
+          ],
+          "dtype": "float64"
+        }
+      },
+      "source_filename": "ZCosetGap_d7_p0.16_scores.npz",
+      "source_sha256": "a823477a15fc1207306e91b0ec0030a1bf4fb1a4752d309bde445e165dd56319"
+    },
+    {
+      "path": "figure11/calibration_scores/ZCosetGap_d7_p0.18_scores.npz",
+      "bytes": 917359,
+      "sha256": "74c0cb46b1fa1b21d116b111c8225a9fe98e98369fb885022af873f5df8648e8",
+      "arrays": {
+        "scores": {
+          "shape": [
+            262144
+          ],
+          "dtype": "float64"
+        }
+      },
+      "source_filename": "ZCosetGap_d7_p0.18_scores.npz",
+      "source_sha256": "74c0cb46b1fa1b21d116b111c8225a9fe98e98369fb885022af873f5df8648e8"
+    },
+    {
+      "path": "figure11/calibration_scores/ZCosetGap_d7_p0.20_scores.npz",
+      "bytes": 906274,
+      "sha256": "4f79e9d4501e514d47b08be763d6c13d445f399c0657813f7fac14e2772f52d3",
+      "arrays": {
+        "scores": {
+          "shape": [
+            262144
+          ],
+          "dtype": "float64"
+        }
+      },
+      "source_filename": "ZCosetGap_d7_p0.20_scores.npz",
+      "source_sha256": "4f79e9d4501e514d47b08be763d6c13d445f399c0657813f7fac14e2772f52d3"
+    },
+    {
+      "path": "figure11/calibration_scores/ZCosetGap_d9_p0.08_scores.npz",
+      "bytes": 1199938,
+      "sha256": "01d87462968ecbc198563c264d1491a30524ae17b90c1275a1251ec5aa94a9b7",
+      "arrays": {
+        "scores": {
+          "shape": [
+            262144
+          ],
+          "dtype": "float64"
+        }
+      },
+      "source_filename": "ZCosetGap_d9_p0.08_scores.npz",
+      "source_sha256": "01d87462968ecbc198563c264d1491a30524ae17b90c1275a1251ec5aa94a9b7"
+    },
+    {
+      "path": "figure11/calibration_scores/ZCosetGap_d9_p0.10_scores.npz",
+      "bytes": 1171365,
+      "sha256": "3b91cc537b609842226c6fae1718aea175c42ad609e0f81e0eec64426fa32f6f",
+      "arrays": {
+        "scores": {
+          "shape": [
+            262144
+          ],
+          "dtype": "float64"
+        }
+      },
+      "source_filename": "ZCosetGap_d9_p0.10_scores.npz",
+      "source_sha256": "3b91cc537b609842226c6fae1718aea175c42ad609e0f81e0eec64426fa32f6f"
+    },
+    {
+      "path": "figure11/calibration_scores/ZCosetGap_d9_p0.12_scores.npz",
+      "bytes": 1140037,
+      "sha256": "cf0ea7482254f68cbc63cf73973dfd8d537b5a0b074355091e9f1dd4a599625f",
+      "arrays": {
+        "scores": {
+          "shape": [
+            262144
+          ],
+          "dtype": "float64"
+        }
+      },
+      "source_filename": "ZCosetGap_d9_p0.12_scores.npz",
+      "source_sha256": "cf0ea7482254f68cbc63cf73973dfd8d537b5a0b074355091e9f1dd4a599625f"
+    },
+    {
+      "path": "figure11/calibration_scores/ZCosetGap_d9_p0.14_scores.npz",
+      "bytes": 1106572,
+      "sha256": "7748340f32f29b7ca881156da3cf42828980337b814c7eb18a27c2dd91011052",
+      "arrays": {
+        "scores": {
+          "shape": [
+            262144
+          ],
+          "dtype": "float64"
+        }
+      },
+      "source_filename": "ZCosetGap_d9_p0.14_scores.npz",
+      "source_sha256": "7748340f32f29b7ca881156da3cf42828980337b814c7eb18a27c2dd91011052"
+    },
+    {
+      "path": "figure11/calibration_scores/ZCosetGap_d9_p0.16_scores.npz",
+      "bytes": 1077354,
+      "sha256": "257faabd0b20c2a97478be4458a3ab1037c06556ccc51afad66b854ec946dc8a",
+      "arrays": {
+        "scores": {
+          "shape": [
+            262144
+          ],
+          "dtype": "float64"
+        }
+      },
+      "source_filename": "ZCosetGap_d9_p0.16_scores.npz",
+      "source_sha256": "257faabd0b20c2a97478be4458a3ab1037c06556ccc51afad66b854ec946dc8a"
+    },
+    {
+      "path": "figure11/calibration_scores/ZCosetGap_d9_p0.18_scores.npz",
+      "bytes": 1052997,
+      "sha256": "9b58b3db9ff066771fc7dd821dada1094596febb843f639845d219f8a28d07cc",
+      "arrays": {
+        "scores": {
+          "shape": [
+            262144
+          ],
+          "dtype": "float64"
+        }
+      },
+      "source_filename": "ZCosetGap_d9_p0.18_scores.npz",
+      "source_sha256": "9b58b3db9ff066771fc7dd821dada1094596febb843f639845d219f8a28d07cc"
+    },
+    {
+      "path": "figure11/calibration_scores/ZCosetGap_d9_p0.20_scores.npz",
+      "bytes": 1038228,
+      "sha256": "76ec90071ef7bbbdd5c502e631c0b0909bebee92f04049f55c69ba8a48c1f64d",
+      "arrays": {
+        "scores": {
+          "shape": [
+            262144
+          ],
+          "dtype": "float64"
+        }
+      },
+      "source_filename": "ZCosetGap_d9_p0.20_scores.npz",
+      "source_sha256": "76ec90071ef7bbbdd5c502e631c0b0909bebee92f04049f55c69ba8a48c1f64d"
+    },
+    {
+      "path": "figure11/evaluation_counts.csv",
+      "bytes": 5559623,
+      "sha256": "f10be88503ab5e512237c4a7f17707ebea86351824693c1951414625e786583b",
+      "columns": [
+        "estimator",
+        "d",
+        "p_trans",
+        "chunk",
+        "seed",
+        "shots",
+        "target_accept",
+        "accepted",
+        "failures",
+        "accept_rate",
+        "condL",
+        "included_in_aggregate",
+        "unfiltered_failures",
+        "nn_forward_passes",
+        "n_p_equal_1",
+        "recount_matches",
+        "fresh_forward_matches",
+        "sec_sample",
+        "sec_eval",
+        "sec_total"
+      ],
+      "rows": 35716,
+      "transformation": "Flatten the four acceptance targets from each of 8,929 evaluation chunks; mark the 8,886 chunks used in the final aggregates. Retain counts, seeds, times and numerical verification fields; omit process and host identifiers."
+    },
+    {
+      "path": "figure11/fig11_all_points.csv",
+      "bytes": 83929,
+      "sha256": "175b96d8910e95da38fdd17cd11f76a9751be6d3ee4f030b5867b0d1dc23ed22",
+      "columns": [
+        "estimator",
+        "target_accept",
+        "p_local",
+        "d",
+        "p_trans",
+        "condL",
+        "filter_label",
+        "failures",
+        "accepted",
+        "shots_eval",
+        "achieved_accept",
+        "ci95_lo",
+        "ci95_hi",
+        "fewer_than_10_failures",
+        "fewer_than_100_failures",
+        "hit_cap",
+        "stop",
+        "n_chunks",
+        "chunk_shots",
+        "overshoot_chunks_not_used",
+        "tau",
+        "shots_cal",
+        "cal_accept",
+        "seed_cal",
+        "seed_eval_first",
+        "seed_eval_last",
+        "nn_batch",
+        "chunk0_recount_matches",
+        "chunk0_fresh_forward_matches",
+        "chunks_with_zero_accept",
+        "chunk0_unfiltered_failures"
+      ],
+      "rows": 336,
+      "source_filename": "fig11_all_points.csv",
+      "source_sha256": "175b96d8910e95da38fdd17cd11f76a9751be6d3ee4f030b5867b0d1dc23ed22",
+      "cache_path": "hybrid-error-management/finite_size_scan/out/fig11_all_points.csv"
+    },
+    {
+      "path": "figure11/threshold_scan_NNFilter_acc10.csv",
+      "bytes": 7471,
+      "sha256": "55f8834fe2eeaacf405dbcc66d41f422cf72b4b0375895034a5e33f84ba8fcb4",
+      "columns": [
+        "estimator",
+        "target_accept",
+        "p_local",
+        "d",
+        "p_trans",
+        "condL",
+        "filter_label",
+        "failures",
+        "accepted",
+        "shots_eval",
+        "achieved_accept",
+        "ci95_lo",
+        "ci95_hi",
+        "fewer_than_10_failures",
+        "fewer_than_100_failures",
+        "hit_cap",
+        "stop",
+        "n_chunks",
+        "chunk_shots",
+        "overshoot_chunks_not_used",
+        "tau",
+        "shots_cal",
+        "cal_accept",
+        "seed_cal",
+        "seed_eval_first",
+        "seed_eval_last",
+        "nn_batch",
+        "chunk0_recount_matches",
+        "chunk0_fresh_forward_matches",
+        "chunks_with_zero_accept",
+        "chunk0_unfiltered_failures"
+      ],
+      "rows": 28,
+      "source_filename": "threshold_scan_NNFilter_acc10.csv",
+      "source_sha256": "55f8834fe2eeaacf405dbcc66d41f422cf72b4b0375895034a5e33f84ba8fcb4",
+      "cache_path": "hybrid-error-management/finite_size_scan/out/threshold_scan_NNFilter_acc10.csv"
+    },
+    {
+      "path": "figure11/threshold_scan_NNFilter_acc20.csv",
+      "bytes": 7455,
+      "sha256": "ec95598b261841cfe4421c56c9feebe550a5eb6cd46f9e1e697361c3339bd976",
+      "columns": [
+        "estimator",
+        "target_accept",
+        "p_local",
+        "d",
+        "p_trans",
+        "condL",
+        "filter_label",
+        "failures",
+        "accepted",
+        "shots_eval",
+        "achieved_accept",
+        "ci95_lo",
+        "ci95_hi",
+        "fewer_than_10_failures",
+        "fewer_than_100_failures",
+        "hit_cap",
+        "stop",
+        "n_chunks",
+        "chunk_shots",
+        "overshoot_chunks_not_used",
+        "tau",
+        "shots_cal",
+        "cal_accept",
+        "seed_cal",
+        "seed_eval_first",
+        "seed_eval_last",
+        "nn_batch",
+        "chunk0_recount_matches",
+        "chunk0_fresh_forward_matches",
+        "chunks_with_zero_accept",
+        "chunk0_unfiltered_failures"
+      ],
+      "rows": 28,
+      "source_filename": "threshold_scan_NNFilter_acc20.csv",
+      "source_sha256": "ec95598b261841cfe4421c56c9feebe550a5eb6cd46f9e1e697361c3339bd976",
+      "cache_path": "hybrid-error-management/finite_size_scan/out/threshold_scan_NNFilter_acc20.csv"
+    },
+    {
+      "path": "figure11/threshold_scan_NNFilter_acc40.csv",
+      "bytes": 7469,
+      "sha256": "8bd692d51d73d769d7d02607408777dce55fd4f97778cc09ce5a467e5bd9bc21",
+      "columns": [
+        "estimator",
+        "target_accept",
+        "p_local",
+        "d",
+        "p_trans",
+        "condL",
+        "filter_label",
+        "failures",
+        "accepted",
+        "shots_eval",
+        "achieved_accept",
+        "ci95_lo",
+        "ci95_hi",
+        "fewer_than_10_failures",
+        "fewer_than_100_failures",
+        "hit_cap",
+        "stop",
+        "n_chunks",
+        "chunk_shots",
+        "overshoot_chunks_not_used",
+        "tau",
+        "shots_cal",
+        "cal_accept",
+        "seed_cal",
+        "seed_eval_first",
+        "seed_eval_last",
+        "nn_batch",
+        "chunk0_recount_matches",
+        "chunk0_fresh_forward_matches",
+        "chunks_with_zero_accept",
+        "chunk0_unfiltered_failures"
+      ],
+      "rows": 28,
+      "source_filename": "threshold_scan_NNFilter_acc40.csv",
+      "source_sha256": "8bd692d51d73d769d7d02607408777dce55fd4f97778cc09ce5a467e5bd9bc21",
+      "cache_path": "hybrid-error-management/finite_size_scan/out/threshold_scan_NNFilter_acc40.csv"
+    },
+    {
+      "path": "figure11/threshold_scan_NNFilter_acc80.csv",
+      "bytes": 7465,
+      "sha256": "a8c90cbefad0df0175c28b59b31cd9bc8b30a34236467a7fc70f75a6950b2df1",
+      "columns": [
+        "estimator",
+        "target_accept",
+        "p_local",
+        "d",
+        "p_trans",
+        "condL",
+        "filter_label",
+        "failures",
+        "accepted",
+        "shots_eval",
+        "achieved_accept",
+        "ci95_lo",
+        "ci95_hi",
+        "fewer_than_10_failures",
+        "fewer_than_100_failures",
+        "hit_cap",
+        "stop",
+        "n_chunks",
+        "chunk_shots",
+        "overshoot_chunks_not_used",
+        "tau",
+        "shots_cal",
+        "cal_accept",
+        "seed_cal",
+        "seed_eval_first",
+        "seed_eval_last",
+        "nn_batch",
+        "chunk0_recount_matches",
+        "chunk0_fresh_forward_matches",
+        "chunks_with_zero_accept",
+        "chunk0_unfiltered_failures"
+      ],
+      "rows": 28,
+      "source_filename": "threshold_scan_NNFilter_acc80.csv",
+      "source_sha256": "a8c90cbefad0df0175c28b59b31cd9bc8b30a34236467a7fc70f75a6950b2df1",
+      "cache_path": "hybrid-error-management/finite_size_scan/out/threshold_scan_NNFilter_acc80.csv"
+    },
+    {
+      "path": "figure11/threshold_scan_SyndromeWeight_acc10.csv",
+      "bytes": 7326,
+      "sha256": "446e33aa2c13b6a8a7ae760c5b6f6e7770d5bb494a28915292696f4370d58431",
+      "columns": [
+        "estimator",
+        "target_accept",
+        "p_local",
+        "d",
+        "p_trans",
+        "condL",
+        "filter_label",
+        "failures",
+        "accepted",
+        "shots_eval",
+        "achieved_accept",
+        "ci95_lo",
+        "ci95_hi",
+        "fewer_than_10_failures",
+        "fewer_than_100_failures",
+        "hit_cap",
+        "stop",
+        "n_chunks",
+        "chunk_shots",
+        "overshoot_chunks_not_used",
+        "tau",
+        "shots_cal",
+        "cal_accept",
+        "seed_cal",
+        "seed_eval_first",
+        "seed_eval_last",
+        "nn_batch",
+        "chunk0_recount_matches",
+        "chunk0_fresh_forward_matches",
+        "chunks_with_zero_accept",
+        "chunk0_unfiltered_failures"
+      ],
+      "rows": 28,
+      "source_filename": "threshold_scan_SyndromeWeight_acc10.csv",
+      "source_sha256": "446e33aa2c13b6a8a7ae760c5b6f6e7770d5bb494a28915292696f4370d58431",
+      "cache_path": "hybrid-error-management/finite_size_scan/out/threshold_scan_SyndromeWeight_acc10.csv"
+    },
+    {
+      "path": "figure11/threshold_scan_SyndromeWeight_acc20.csv",
+      "bytes": 7317,
+      "sha256": "0d1bf12799f967378d017c50e5b87e1a175651ecedc539e4afdeaaf21ac2fe43",
+      "columns": [
+        "estimator",
+        "target_accept",
+        "p_local",
+        "d",
+        "p_trans",
+        "condL",
+        "filter_label",
+        "failures",
+        "accepted",
+        "shots_eval",
+        "achieved_accept",
+        "ci95_lo",
+        "ci95_hi",
+        "fewer_than_10_failures",
+        "fewer_than_100_failures",
+        "hit_cap",
+        "stop",
+        "n_chunks",
+        "chunk_shots",
+        "overshoot_chunks_not_used",
+        "tau",
+        "shots_cal",
+        "cal_accept",
+        "seed_cal",
+        "seed_eval_first",
+        "seed_eval_last",
+        "nn_batch",
+        "chunk0_recount_matches",
+        "chunk0_fresh_forward_matches",
+        "chunks_with_zero_accept",
+        "chunk0_unfiltered_failures"
+      ],
+      "rows": 28,
+      "source_filename": "threshold_scan_SyndromeWeight_acc20.csv",
+      "source_sha256": "0d1bf12799f967378d017c50e5b87e1a175651ecedc539e4afdeaaf21ac2fe43",
+      "cache_path": "hybrid-error-management/finite_size_scan/out/threshold_scan_SyndromeWeight_acc20.csv"
+    },
+    {
+      "path": "figure11/threshold_scan_SyndromeWeight_acc40.csv",
+      "bytes": 7335,
+      "sha256": "20cd316cf2af30141ee7923db934732bf66e35bcc3a328d11a97f0b644086477",
+      "columns": [
+        "estimator",
+        "target_accept",
+        "p_local",
+        "d",
+        "p_trans",
+        "condL",
+        "filter_label",
+        "failures",
+        "accepted",
+        "shots_eval",
+        "achieved_accept",
+        "ci95_lo",
+        "ci95_hi",
+        "fewer_than_10_failures",
+        "fewer_than_100_failures",
+        "hit_cap",
+        "stop",
+        "n_chunks",
+        "chunk_shots",
+        "overshoot_chunks_not_used",
+        "tau",
+        "shots_cal",
+        "cal_accept",
+        "seed_cal",
+        "seed_eval_first",
+        "seed_eval_last",
+        "nn_batch",
+        "chunk0_recount_matches",
+        "chunk0_fresh_forward_matches",
+        "chunks_with_zero_accept",
+        "chunk0_unfiltered_failures"
+      ],
+      "rows": 28,
+      "source_filename": "threshold_scan_SyndromeWeight_acc40.csv",
+      "source_sha256": "20cd316cf2af30141ee7923db934732bf66e35bcc3a328d11a97f0b644086477",
+      "cache_path": "hybrid-error-management/finite_size_scan/out/threshold_scan_SyndromeWeight_acc40.csv"
+    },
+    {
+      "path": "figure11/threshold_scan_SyndromeWeight_acc80.csv",
+      "bytes": 7315,
+      "sha256": "e101be817affa61612f799d58635c2426fdc7e30a703a9cfb415e26a11d932b1",
+      "columns": [
+        "estimator",
+        "target_accept",
+        "p_local",
+        "d",
+        "p_trans",
+        "condL",
+        "filter_label",
+        "failures",
+        "accepted",
+        "shots_eval",
+        "achieved_accept",
+        "ci95_lo",
+        "ci95_hi",
+        "fewer_than_10_failures",
+        "fewer_than_100_failures",
+        "hit_cap",
+        "stop",
+        "n_chunks",
+        "chunk_shots",
+        "overshoot_chunks_not_used",
+        "tau",
+        "shots_cal",
+        "cal_accept",
+        "seed_cal",
+        "seed_eval_first",
+        "seed_eval_last",
+        "nn_batch",
+        "chunk0_recount_matches",
+        "chunk0_fresh_forward_matches",
+        "chunks_with_zero_accept",
+        "chunk0_unfiltered_failures"
+      ],
+      "rows": 28,
+      "source_filename": "threshold_scan_SyndromeWeight_acc80.csv",
+      "source_sha256": "e101be817affa61612f799d58635c2426fdc7e30a703a9cfb415e26a11d932b1",
+      "cache_path": "hybrid-error-management/finite_size_scan/out/threshold_scan_SyndromeWeight_acc80.csv"
+    },
+    {
+      "path": "figure11/threshold_scan_ZCosetGap_acc10.csv",
+      "bytes": 7321,
+      "sha256": "62b88ab311fba63c7311a3ec0050425286d283bfd2c90f6839e4e514dbd998c0",
+      "columns": [
+        "estimator",
+        "target_accept",
+        "p_local",
+        "d",
+        "p_trans",
+        "condL",
+        "filter_label",
+        "failures",
+        "accepted",
+        "shots_eval",
+        "achieved_accept",
+        "ci95_lo",
+        "ci95_hi",
+        "fewer_than_10_failures",
+        "fewer_than_100_failures",
+        "hit_cap",
+        "stop",
+        "n_chunks",
+        "chunk_shots",
+        "overshoot_chunks_not_used",
+        "tau",
+        "shots_cal",
+        "cal_accept",
+        "seed_cal",
+        "seed_eval_first",
+        "seed_eval_last",
+        "nn_batch",
+        "chunk0_recount_matches",
+        "chunk0_fresh_forward_matches",
+        "chunks_with_zero_accept",
+        "chunk0_unfiltered_failures"
+      ],
+      "rows": 28,
+      "source_filename": "threshold_scan_ZCosetGap_acc10.csv",
+      "source_sha256": "62b88ab311fba63c7311a3ec0050425286d283bfd2c90f6839e4e514dbd998c0",
+      "cache_path": "hybrid-error-management/finite_size_scan/out/threshold_scan_ZCosetGap_acc10.csv"
+    },
+    {
+      "path": "figure11/threshold_scan_ZCosetGap_acc20.csv",
+      "bytes": 7297,
+      "sha256": "2faf7e7cee87fedb8ebc86cc8297de54723f90080928ee046e54cd4d2af12f9d",
+      "columns": [
+        "estimator",
+        "target_accept",
+        "p_local",
+        "d",
+        "p_trans",
+        "condL",
+        "filter_label",
+        "failures",
+        "accepted",
+        "shots_eval",
+        "achieved_accept",
+        "ci95_lo",
+        "ci95_hi",
+        "fewer_than_10_failures",
+        "fewer_than_100_failures",
+        "hit_cap",
+        "stop",
+        "n_chunks",
+        "chunk_shots",
+        "overshoot_chunks_not_used",
+        "tau",
+        "shots_cal",
+        "cal_accept",
+        "seed_cal",
+        "seed_eval_first",
+        "seed_eval_last",
+        "nn_batch",
+        "chunk0_recount_matches",
+        "chunk0_fresh_forward_matches",
+        "chunks_with_zero_accept",
+        "chunk0_unfiltered_failures"
+      ],
+      "rows": 28,
+      "source_filename": "threshold_scan_ZCosetGap_acc20.csv",
+      "source_sha256": "2faf7e7cee87fedb8ebc86cc8297de54723f90080928ee046e54cd4d2af12f9d",
+      "cache_path": "hybrid-error-management/finite_size_scan/out/threshold_scan_ZCosetGap_acc20.csv"
+    },
+    {
+      "path": "figure11/threshold_scan_ZCosetGap_acc40.csv",
+      "bytes": 7315,
+      "sha256": "a9ecc2469c682423e8d2cd5f2210ff6d1004efccb4cd7cb8f900fd96875048d2",
+      "columns": [
+        "estimator",
+        "target_accept",
+        "p_local",
+        "d",
+        "p_trans",
+        "condL",
+        "filter_label",
+        "failures",
+        "accepted",
+        "shots_eval",
+        "achieved_accept",
+        "ci95_lo",
+        "ci95_hi",
+        "fewer_than_10_failures",
+        "fewer_than_100_failures",
+        "hit_cap",
+        "stop",
+        "n_chunks",
+        "chunk_shots",
+        "overshoot_chunks_not_used",
+        "tau",
+        "shots_cal",
+        "cal_accept",
+        "seed_cal",
+        "seed_eval_first",
+        "seed_eval_last",
+        "nn_batch",
+        "chunk0_recount_matches",
+        "chunk0_fresh_forward_matches",
+        "chunks_with_zero_accept",
+        "chunk0_unfiltered_failures"
+      ],
+      "rows": 28,
+      "source_filename": "threshold_scan_ZCosetGap_acc40.csv",
+      "source_sha256": "a9ecc2469c682423e8d2cd5f2210ff6d1004efccb4cd7cb8f900fd96875048d2",
+      "cache_path": "hybrid-error-management/finite_size_scan/out/threshold_scan_ZCosetGap_acc40.csv"
+    },
+    {
+      "path": "figure11/threshold_scan_ZCosetGap_acc80.csv",
+      "bytes": 7309,
+      "sha256": "6e4faa6b396987a5dad02e5ad367361eed965c95ba51a8f7ef2e3adb8d2b8ff2",
+      "columns": [
+        "estimator",
+        "target_accept",
+        "p_local",
+        "d",
+        "p_trans",
+        "condL",
+        "filter_label",
+        "failures",
+        "accepted",
+        "shots_eval",
+        "achieved_accept",
+        "ci95_lo",
+        "ci95_hi",
+        "fewer_than_10_failures",
+        "fewer_than_100_failures",
+        "hit_cap",
+        "stop",
+        "n_chunks",
+        "chunk_shots",
+        "overshoot_chunks_not_used",
+        "tau",
+        "shots_cal",
+        "cal_accept",
+        "seed_cal",
+        "seed_eval_first",
+        "seed_eval_last",
+        "nn_batch",
+        "chunk0_recount_matches",
+        "chunk0_fresh_forward_matches",
+        "chunks_with_zero_accept",
+        "chunk0_unfiltered_failures"
+      ],
+      "rows": 28,
+      "source_filename": "threshold_scan_ZCosetGap_acc80.csv",
+      "source_sha256": "6e4faa6b396987a5dad02e5ad367361eed965c95ba51a8f7ef2e3adb8d2b8ff2",
+      "cache_path": "hybrid-error-management/finite_size_scan/out/threshold_scan_ZCosetGap_acc80.csv"
+    },
+    {
+      "path": "figure12/environment_regen.csv",
+      "bytes": 1800,
+      "sha256": "bb9023f4670f791172b7f5b94acff6a88108b0681a1964701a0195ff424ac090",
+      "columns": [
+        "file",
+        "tag",
+        "cpu_model",
+        "gpu_name",
+        "gpu_pci",
+        "torch",
+        "cuda",
+        "cudnn",
+        "torch_threads",
+        "torch_interop_threads",
+        "stim",
+        "pymatching",
+        "numpy",
+        "python",
+        "device",
+        "cores",
+        "freq_min_mhz",
+        "probe_max_ms",
+        "sib_max",
+        "wait_max",
+        "max_attempts",
+        "warm_min_s",
+        "env"
+      ],
+      "rows": 4,
+      "source_filename": "environment_regen.csv",
+      "source_sha256": "bb9023f4670f791172b7f5b94acff6a88108b0681a1964701a0195ff424ac090",
+      "cache_path": "hybrid-error-management/runtime_benchmark/environment_regen.csv"
+    },
+    {
+      "path": "figure12/runtime_plotted_values.csv",
+      "bytes": 9788,
+      "sha256": "a556657bde94636241b8891d5da6cac73d7e82da092374a308f129c68b16d470",
+      "columns": [
+        "tag",
+        "method",
+        "device",
+        "mode",
+        "d",
+        "p_trans",
+        "t_round_us_mean",
+        "t_round_us_std",
+        "n_reps",
+        "rounds_per_rep",
+        "total_rounds",
+        "total_accepted",
+        "total_failures",
+        "accept_frac",
+        "tau",
+        "valid",
+        "bar_x",
+        "bar_color",
+        "hatched"
+      ],
+      "rows": 64,
+      "source_filename": "runtime_plotted_values.csv",
+      "source_sha256": "a556657bde94636241b8891d5da6cac73d7e82da092374a308f129c68b16d470",
+      "cache_path": "hybrid-error-management/runtime_benchmark/figs/runtime_plotted_values.csv"
+    },
+    {
+      "path": "figure12/runtime_reps_regen.csv",
+      "bytes": 98210,
+      "sha256": "8c01240c941230f5b1fa5c18b9b9bebfffc165195ba4b77aa8bce4c6ce9e20a6",
+      "columns": [
+        "tag",
+        "method",
+        "device",
+        "mode",
+        "d",
+        "p_trans",
+        "rep",
+        "T_filter_ns",
+        "T_decode_ns",
+        "rounds",
+        "accepted",
+        "failures",
+        "t_round_us",
+        "unit_core",
+        "unit_sibling_busy",
+        "unit_clock_mhz"
+      ],
+      "rows": 1200,
+      "source_filename": "runtime_reps_regen.csv",
+      "source_sha256": "8c01240c941230f5b1fa5c18b9b9bebfffc165195ba4b77aa8bce4c6ce9e20a6",
+      "cache_path": "hybrid-error-management/runtime_benchmark/runtime_reps_regen.csv"
+    },
+    {
+      "path": "figure12/runtime_results_regen.csv",
+      "bytes": 37579,
+      "sha256": "665da2019aaacc277d3509d349436cc304f208eee92bc3b6d7c317ad8bd3982b",
+      "columns": [
+        "tag",
+        "method",
+        "device",
+        "mode",
+        "d",
+        "p_trans",
+        "tau",
+        "rounds_per_rep",
+        "n_reps",
+        "t_round_us_mean",
+        "t_round_us_std",
+        "t_round_us_median",
+        "t_round_us_min",
+        "t_round_us_max",
+        "filter_us_per_round_mean",
+        "decode_us_per_accepted_mean",
+        "total_rounds",
+        "total_accepted",
+        "total_failures",
+        "accept_frac",
+        "median_end_to_end_accepted_us",
+        "p99_end_to_end_accepted_us",
+        "valid",
+        "repeated_sections_or_units",
+        "cores",
+        "sibling_busy_max",
+        "runqueue_wait_frac_max",
+        "probe_ms_max",
+        "clock_mhz_min",
+        "clock_mhz_mean",
+        "loadavg_1min",
+        "time",
+        "single_pass_check_maxabsdiff",
+        "forward_calls_per_batch",
+        "forward_calls_per_round"
+      ],
+      "rows": 128,
+      "source_filename": "runtime_results_regen.csv",
+      "source_sha256": "665da2019aaacc277d3509d349436cc304f208eee92bc3b6d7c317ad8bd3982b",
+      "cache_path": "hybrid-error-management/runtime_benchmark/runtime_results_regen.csv"
+    },
+    {
+      "path": "figure12/thresholds_regen.csv",
+      "bytes": 4458,
+      "sha256": "48b289c66bf5c1bf670256014831e0a6ec6c29d812c05770de4d7ff7c00b9c78",
+      "columns": [
+        "tag",
+        "method",
+        "d",
+        "p_trans",
+        "nn_inference_batch",
+        "tau",
+        "n_cal_scored",
+        "cal_accepted",
+        "cal_accept_frac",
+        "cal_failures_in_sample",
+        "cal_unfiltered_failures"
+      ],
+      "rows": 64,
+      "source_filename": "thresholds_regen.csv",
+      "source_sha256": "48b289c66bf5c1bf670256014831e0a6ec6c29d812c05770de4d7ff7c00b9c78",
+      "cache_path": "hybrid-error-management/runtime_benchmark/thresholds_regen.csv"
+    },
+    {
+      "path": "hybrid_basis_comparison/d3_comparison.csv",
+      "bytes": 15092,
+      "sha256": "e6a0a2f3ca34679f162047ee9f722dfe5144c73096d83967ea192cfd73076644",
+      "source_filename": "symmetry_table.csv",
+      "source_sha256": "e6a0a2f3ca34679f162047ee9f722dfe5144c73096d83967ea192cfd73076644",
+      "columns": [
+        "p_local",
+        "p_trans",
+        "method",
+        "target",
+        "z_acc",
+        "z_ler",
+        "z_ci_lo",
+        "z_ci_hi",
+        "z_n_acc",
+        "z_n_err",
+        "x_acc",
+        "x_ler",
+        "x_ci_lo",
+        "x_ci_hi",
+        "x_n_acc",
+        "x_n_err",
+        "ratio_x_over_z",
+        "ratio_ci_lo",
+        "ratio_ci_hi",
+        "z_tau",
+        "x_tau",
+        "exact_z_acc",
+        "exact_x_acc",
+        "exact_z_ler",
+        "exact_x_ler",
+        "exact_ratio_harness_tau",
+        "exact_z_ler_matched",
+        "exact_x_ler_matched",
+        "exact_ratio_matched",
+        "exact_mld_ratio_matched",
+        "exact_mld_ratio_unfiltered"
+      ],
+      "rows": 36
+    },
+    {
+      "path": "hybrid_basis_comparison/d3_exact.csv",
+      "bytes": 12921,
+      "sha256": "0901aa854249ab9a13681de2fe79a0dfb57582344bb8b4e62af9c3ad200f8208",
+      "source_filename": "exact_symmetry.csv",
+      "source_sha256": "0901aa854249ab9a13681de2fe79a0dfb57582344bb8b4e62af9c3ad200f8208",
+      "columns": [
+        "basis",
+        "p_local",
+        "p_trans",
+        "target",
+        "total_prob",
+        "p_obs_flip",
+        "mwpm_ler",
+        "mld_ler",
+        "mld_matched_ler",
+        "sw_h_tau",
+        "sw_h_acc",
+        "sw_h_ler",
+        "sw_inf_wmax",
+        "sw_inf_acc",
+        "sw_inf_ler",
+        "sw_cdf_w0",
+        "sw_cdf_w1",
+        "sw_cdf_w2",
+        "sw_matched_ler",
+        "sw_matched_frac",
+        "zc_h_tau",
+        "zc_h_acc",
+        "zc_h_ler",
+        "zc_inf_tau",
+        "zc_inf_acc",
+        "zc_inf_ler",
+        "zc_matched_ler",
+        "zc_matched_frac",
+        "zc_boundary_atom_value",
+        "zc_boundary_atom_mass",
+        "zc_acc_excl_atom",
+        "zc_acc_incl_atom"
+      ],
+      "rows": 24
+    },
+    {
+      "path": "hybrid_basis_comparison/d3_per_basis.csv",
+      "bytes": 10390,
+      "sha256": "bf38d748cb6fab2879f07cdff48d841b3415b24b9d2229323c34d7ffafb1c205",
+      "source_filename": "symmetry_harness.csv",
+      "source_sha256": "bf38d748cb6fab2879f07cdff48d841b3415b24b9d2229323c34d7ffafb1c205",
+      "columns": [
+        "basis",
+        "p_local",
+        "p_trans",
+        "method",
+        "target",
+        "rep",
+        "seed",
+        "shots_cal",
+        "shots_eval",
+        "n_det",
+        "n_err_mech",
+        "tau",
+        "n_acc",
+        "acc_emp",
+        "n_err",
+        "ler",
+        "ci_lo",
+        "ci_hi"
+      ],
+      "rows": 72
+    },
+    {
+      "path": "hybrid_basis_comparison/d5_d7_d9_comparison.csv",
+      "bytes": 23640,
+      "sha256": "7c1c1a16f02a1354dd0c1aa8dc55d176f351f8a2e2a14635d779c15653a7c26c",
+      "source_filename": "symmetry_large_d.csv",
+      "source_sha256": "7c1c1a16f02a1354dd0c1aa8dc55d176f351f8a2e2a14635d779c15653a7c26c",
+      "columns": [
+        "d",
+        "p_local",
+        "num_layer",
+        "p_trans",
+        "method",
+        "label",
+        "target_accept",
+        "Z_shots_eval",
+        "Z_accepted",
+        "Z_accept_rate",
+        "Z_failures",
+        "Z_ler",
+        "Z_ci95_lo",
+        "Z_ci95_hi",
+        "Z_tau",
+        "Z_shots_cal",
+        "Z_seed_cal",
+        "Z_seed_eval_first",
+        "Z_seed_eval_last",
+        "Z_n_chunks",
+        "Z_hit_cap",
+        "Z_ds_all_scores_zero",
+        "X_shots_eval",
+        "X_accepted",
+        "X_accept_rate",
+        "X_failures",
+        "X_ler",
+        "X_ci95_lo",
+        "X_ci95_hi",
+        "X_tau",
+        "X_shots_cal",
+        "X_seed_cal",
+        "X_seed_eval_first",
+        "X_seed_eval_last",
+        "X_n_chunks",
+        "X_hit_cap",
+        "X_ds_all_scores_zero",
+        "ratio_X_over_Z",
+        "ratio_ci95_lo",
+        "ratio_ci95_hi",
+        "ratio_ci_contains_1",
+        "avg_XZ_ler",
+        "avg_over_Z",
+        "SW_common_wmax",
+        "X_at_Z_tau_accept_rate",
+        "X_at_Z_tau_ler",
+        "ratio_at_common_tau",
+        "ratio_at_common_tau_ci95_lo",
+        "ratio_at_common_tau_ci95_hi",
+        "Z_matched_accept_rate",
+        "Z_matched_ler",
+        "Z_matched_tie_fraction",
+        "Z_matched_tie_size",
+        "X_matched_accept_rate",
+        "X_matched_ler",
+        "X_matched_tie_fraction",
+        "X_matched_tie_size",
+        "ratio_matched",
+        "ratio_matched_ci95_lo",
+        "ratio_matched_ci95_hi",
+        "fig11_Z_ler",
+        "fig11_Z_failures",
+        "fig11_Z_accepted",
+        "fig11_Z_accept_rate",
+        "Z_over_fig11",
+        "Z_over_fig11_ci95_lo",
+        "Z_over_fig11_ci95_hi",
+        "X_over_fig11",
+        "X_over_fig11_ci95_lo",
+        "X_over_fig11_ci95_hi"
+      ],
+      "rows": 45
+    },
+    {
+      "path": "protocol_comparison/steane_per_basis.csv",
+      "bytes": 14176,
+      "sha256": "f4b5f5683491bc831f41815e5a8b7ac4ae4ebcba85573c41582224024e9ee839",
+      "columns": [
+        "kind",
+        "protocol",
+        "p_local",
+        "p_trans",
+        "basis",
+        "shots",
+        "accept",
+        "ler"
+      ],
+      "rows": 312,
+      "source_filename": "steane_ml.csv",
+      "source_sha256": "f4b5f5683491bc831f41815e5a8b7ac4ae4ebcba85573c41582224024e9ee839"
+    },
+    {
+      "path": "protocol_comparison/surface_correction_per_basis.csv",
+      "bytes": 22095,
+      "sha256": "98418d2754c8a214efc67dc54cd771d69ded2a6fe44e7a8963227f7d2c5b2e7c",
+      "columns": [
+        "code",
+        "protocol",
+        "p_local",
+        "p_trans",
+        "basis",
+        "shots",
+        "failures",
+        "ler",
+        "se",
+        "seed",
+        "seconds"
+      ],
+      "rows": 256,
+      "source_filename": "mc_detail_with_seeds.csv",
+      "source_sha256": "98418d2754c8a214efc67dc54cd771d69ded2a6fe44e7a8963227f7d2c5b2e7c"
+    },
+    {
+      "path": "protocol_comparison/surface_exact_plocal0.csv",
+      "bytes": 3282,
+      "sha256": "ef2ea6cd255c75b8b31209f9abecb5d52d2f38efdd7a140002f608a6b917c5ca",
+      "columns": [
+        "code",
+        "protocol",
+        "p_trans",
+        "basis",
+        "p_local",
+        "ler_exact",
+        "n_failing_patterns"
+      ],
+      "rows": 64,
+      "source_filename": "exact_plocal0.csv",
+      "source_sha256": "ef2ea6cd255c75b8b31209f9abecb5d52d2f38efdd7a140002f608a6b917c5ca"
+    },
+    {
+      "path": "table04/resource_counts.csv",
+      "bytes": 375,
+      "sha256": "6b6ea0a1dc62d63e7f1666caf3486aa30164ee4041853366e5ade8b858bea443",
+      "columns": [
+        "protocol",
+        "code",
+        "single_qubit_gates",
+        "two_qubit_gates",
+        "local_noise_locations",
+        "transmission_noise_locations",
+        "circuit_figure"
+      ],
+      "rows": 9,
+      "source_filename": "proof.pdf",
+      "source_sha256": "49b47a6e815d29f0f49ec7b175b22512b59e6866750dfbb30e7f8fa5bb7f1f3b",
+      "transformation": "Transcribe the nine resource-count rows of Table 4."
+    }
+  ]
+}

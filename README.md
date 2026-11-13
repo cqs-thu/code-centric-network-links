@@ -48,7 +48,7 @@ This compares unfiltered decoding with syndrome-weight and decoder-confidence fi
 
 ## Experiments and figures
 
-The experiment scripts generate CSV results and PDF plots. The protocol comparisons and the hybrid decoder-comparison, distillation-comparison, and acceptance-sweep scripts reuse cached results and compute missing points when rerun. The finite-size scan and runtime benchmark have separate workflows described below. Generated results are not included in the repository.
+The experiment scripts generate CSV results and PDF plots. The protocol comparisons and the hybrid decoder-comparison, distillation-comparison, and acceptance-sweep scripts reuse cached results and compute missing points when rerun. The finite-size scan and runtime benchmark have separate workflows described below. Recorded results and supporting measurements are available in [data/](data/). The [data manifest](data/manifest.json) lists the datasets, parameters, column definitions, checksums, and cache locations used by the existing scripts.
 
 **Logical error rate.** For every protocol the reported logical error rate is the average of the Z-basis and X-basis failure probabilities (conditioned on acceptance). The protocol-comparison scripts compute both bases; the hybrid state-encoding circuits are symmetric under the exchange of the two bases (checked at d = 3, 5, 7, 9 with the MWPM-based filters), so the hybrid scripts simulate the Z basis.
 

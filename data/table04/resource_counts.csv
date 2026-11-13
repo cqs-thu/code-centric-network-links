@@ -1,0 +1,10 @@
+protocol,code,single_qubit_gates,two_qubit_gates,local_noise_locations,transmission_noise_locations,circuit_figure
+ED,Repetition,128,26,72,8,14
+ED,Steane,71,55,217,7,15
+ED,Surface,93,57,172,9,19
+EE-T,Steane,95,103,401,7,17
+EE-T,Surface,227,258,688,9,21
+EE-NC,Steane,151,117,667,7,16
+EE-NC,Surface,179,123,337,9,20
+SE,Steane,47,59,202,7,18
+SE,Surface,58,48,137,9,22
